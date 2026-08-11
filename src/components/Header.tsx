@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, HeartPulse } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import styles from './Header.module.css';
 
 export const Header: React.FC = () => {
@@ -30,8 +30,7 @@ export const Header: React.FC = () => {
       <div className={`container ${styles.navContainer}`}>
         {/* Logo */}
         <Link to="/" className={styles.logo} onClick={closeMenu}>
-          <HeartPulse size={28} color="var(--color-secondary)" />
-          <span>[Business Name]</span>
+          <img src="/cpr_logo.png" alt="Ready to Respond Logo" className={styles.logoImage} />
         </Link>
 
         {/* Desktop Navigation */}
@@ -47,9 +46,6 @@ export const Header: React.FC = () => {
               {link.name}
             </Link>
           ))}
-          <Link to="/classes" className="btn btn-primary">
-            View Classes
-          </Link>
         </nav>
 
         {/* Mobile Toggle */}
@@ -77,9 +73,6 @@ export const Header: React.FC = () => {
             {link.name}
           </Link>
         ))}
-        <Link to="/classes" className="btn btn-primary" onClick={closeMenu}>
-          View Classes
-        </Link>
       </nav>
     </header>
   );

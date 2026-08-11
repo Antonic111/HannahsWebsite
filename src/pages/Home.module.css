@@ -29,6 +29,37 @@
   flex-wrap: wrap;
 }
 
+/* Partner Banner */
+.partnerBanner {
+  background-color: #fff;
+  padding: var(--spacing-lg) 0;
+  border-bottom: 1px solid var(--color-border);
+  text-align: center;
+}
+
+.partnerBanner p:first-child {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  margin-bottom: var(--spacing-sm);
+}
+
+.partnerLogo {
+  height: 85px;
+  width: auto;
+  margin: 0 auto;
+  display: block;
+}
+
+.partnerSubtext {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  margin-top: var(--spacing-sm);
+  margin-bottom: 0;
+}
+
 /* Services Section */
 .servicesGrid {
   display: grid;

@@ -1,0 +1,89 @@
+.adminLayout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #f1f5f9; /* Slate 100 - different from public site */
+}
+
+.sidebar {
+  background-color: var(--color-primary-dark);
+  color: #fff;
+  width: 100%;
+}
+
+.sidebarHeader {
+  padding: var(--spacing-lg);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sidebarBrand {
+  font-weight: 700;
+  font-size: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #fff;
+}
+
+.nav {
+  display: flex;
+  flex-direction: row;
+  overflow-x: auto;
+  padding: 0 var(--spacing-md);
+}
+
+.navItem {
+  padding: var(--spacing-md);
+  color: rgba(255, 255, 255, 0.7);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.navItem:hover {
+  color: #fff;
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.navItemActive {
+  color: #fff;
+  border-bottom: 2px solid var(--color-secondary);
+}
+
+.mainContent {
+  flex-grow: 1;
+  padding: var(--spacing-xl) var(--spacing-lg);
+}
+
+/* Desktop Sidebar */
+@media (min-width: 768px) {
+  .adminLayout {
+    flex-direction: row;
+  }
+
+  .sidebar {
+    width: 250px;
+    flex-shrink: 0;
+    min-height: 100vh;
+  }
+
+  .nav {
+    flex-direction: column;
+    padding: var(--spacing-md) 0;
+  }
+
+  .navItem {
+    padding: var(--spacing-md) var(--spacing-lg);
+  }
+
+  .navItemActive {
+    border-bottom: none;
+    border-left: 3px solid var(--color-secondary);
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+}

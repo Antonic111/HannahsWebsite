@@ -4,11 +4,37 @@ import styles from './ContactForm.module.css';
 export const ContactForm: React.FC = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // For now, this is a placeholder behavior. 
-    // In the future, this will connect to a backend or email service.
-    setIsSubmitted(true);
+    setIsSubmitting(true);
+    setError(null);
+
+    const formData = new FormData(e.currentTarget);
+    const data = Object.fromEntries(formData.entries());
+
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to send message');
+      }
+
+      setIsSubmitted(true);
+    } catch (err: any) {
+      console.error(err);
+      setError('There was a problem sending your message. Please try again later.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (isSubmitted) {
@@ -76,8 +102,18 @@ export const ContactForm: React.FC = () => {
         ></textarea>
       </div>
 
-      <button type="submit" className={`btn btn-primary ${styles.submitBtn}`}>
-        Send Message
+      {error && (
+        <div style={{ color: 'var(--color-secondary)', marginBottom: '1rem', fontSize: '0.9rem', textAlign: 'center' }}>
+          {error}
+        </div>
+      )}
+
+      <button 
+        type="submit" 
+        className={`btn btn-primary ${styles.submitBtn}`}
+        disabled={isSubmitting}
+      >
+        {isSubmitting ? 'Sending...' : 'Send Message'}
       </button>
     </form>
   );

@@ -8,7 +8,7 @@ export const Home: React.FC = () => {
   return (
     <>
       <Helmet>
-        <title>[Business Name] - Professional BLS & CPR Training in Ontario</title>
+        <title>Ready to Respond - Professional BLS & CPR Training in Ontario</title>
         <meta name="description" content="Learn the skills and confidence needed to respond when it matters most. Professional BLS and CPR training in Ontario, Canada." />
       </Helmet>
 
@@ -25,6 +25,21 @@ export const Home: React.FC = () => {
             <Link to="/classes" className="btn btn-primary">View Classes & Pricing</Link>
             <Link to="/contact" className="btn btn-outline">Contact Us</Link>
           </div>
+        </div>
+      </section>
+
+      {/* Partner Banner Section */}
+      <section className={styles.partnerBanner}>
+        <div className="container">
+          <p>Proud Training Partner</p>
+          <img 
+            src="/heart_and_stroke.png" 
+            alt="Heart and Stroke Foundation Logo" 
+            className={styles.partnerLogo} 
+          />
+          <p className={styles.partnerSubtext}>
+            Authorized training delivered by certified instructors
+          </p>
         </div>
       </section>
 
@@ -59,7 +74,7 @@ export const Home: React.FC = () => {
       {/* Why Choose Us Section */}
       <section className="section">
         <div className="container">
-          <h2 style={{ textAlign: 'center' }}>Why Choose [Business Name]?</h2>
+          <h2 style={{ textAlign: 'center' }}>Why Choose Ready to Respond?</h2>
           
           <div className={styles.whyUsGrid}>
             <div className={styles.whyUsItem}>

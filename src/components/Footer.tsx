@@ -12,7 +12,7 @@ export const Footer: React.FC = () => {
           <div className={styles.brand}>
             <h3>
               <HeartPulse size={24} color="var(--color-secondary)" />
-              [Business Name]
+              Ready to Respond
             </h3>
             <p>
               Professional BLS and CPR training in Ontario, Canada. Learn the skills to save a life today.
@@ -39,11 +39,11 @@ export const Footer: React.FC = () => {
               </div>
               <div className={styles.contactItem}>
                 <Phone size={18} />
-                <span>[Phone Number]</span>
+                <span>(416) 844-4843</span>
               </div>
               <div className={styles.contactItem}>
                 <Mail size={18} />
-                <span>[Email Address]</span>
+                <span>readytorespond4u@gmail.com</span>
               </div>
             </div>
           </div>
@@ -52,7 +52,7 @@ export const Footer: React.FC = () => {
         {/* Bottom Bar */}
         <div className={styles.bottomBar}>
           <div>
-            &copy; {new Date().getFullYear()} [Business Name]. All rights reserved.
+            &copy; {new Date().getFullYear()} Ready to Respond. All rights reserved.
           </div>
           <div className={styles.legalLinks}>
             <a href="#privacy">[Privacy Policy]</a>

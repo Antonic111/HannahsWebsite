@@ -8,7 +8,7 @@ export const Contact: React.FC = () => {
   return (
     <>
       <Helmet>
-        <title>Contact Us | [Business Name]</title>
+        <title>Contact Us | Ready to Respond</title>
         <meta name="description" content="Get in touch with us to book a class, request group training, or ask any questions about our BLS and CPR certification courses." />
       </Helmet>
 
@@ -31,7 +31,7 @@ export const Contact: React.FC = () => {
                   </div>
                   <div className={styles.detailText}>
                     <h3>Service Area</h3>
-                    <p>Ontario, Canada<br/>[Specific City/Region Placeholder]</p>
+                    <p>Ontario, Canada</p>
                   </div>
                 </div>
 
@@ -41,7 +41,7 @@ export const Contact: React.FC = () => {
                   </div>
                   <div className={styles.detailText}>
                     <h3>Phone</h3>
-                    <p>[Phone Number]</p>
+                    <p>(416) 844-4843</p>
                   </div>
                 </div>
 
@@ -51,7 +51,7 @@ export const Contact: React.FC = () => {
                   </div>
                   <div className={styles.detailText}>
                     <h3>Email</h3>
-                    <p>[Email Address]</p>
+                    <p>readytorespond4u@gmail.com</p>
                   </div>
                 </div>
 
@@ -66,10 +66,6 @@ export const Contact: React.FC = () => {
                 </div>
               </div>
 
-              {/* Optional Map Placeholder */}
-              <div className={styles.mapPlaceholder}>
-                [Google Maps Integration / Service Area Map]
-              </div>
             </div>
 
             {/* Contact Form */}

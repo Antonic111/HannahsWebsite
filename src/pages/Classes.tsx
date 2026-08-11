@@ -1,14 +1,15 @@
 import React from 'react';
 import { Helmet } from 'react-helmet-async';
 import { CourseCard } from '../components/CourseCard';
-import { courses } from '../data/courses';
+import { useCourses } from '../context/CourseContext';
 import styles from './Classes.module.css';
 
 export const Classes: React.FC = () => {
+  const { courses } = useCourses();
   return (
     <>
       <Helmet>
-        <title>Classes & Pricing | [Business Name]</title>
+        <title>Classes & Pricing | Ready to Respond</title>
         <meta name="description" content="View our available BLS and CPR courses, pricing, and certification details." />
       </Helmet>
 

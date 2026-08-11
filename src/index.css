@@ -204,6 +204,12 @@ ul, ol {
   border-radius: var(--radius-md);
   font-family: inherit;
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  resize: vertical;
+}
+
+textarea.form-control {
+  min-height: 120px;
+  max-height: 400px;
 }
 
 .form-control:focus {
