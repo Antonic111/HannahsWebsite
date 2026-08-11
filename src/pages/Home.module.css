@@ -1,0 +1,95 @@
+.hero {
+  background-color: var(--color-bg-card);
+  padding: var(--spacing-3xl) 0;
+  text-align: center;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.heroContent {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.heroTitle {
+  font-size: 3rem;
+  margin-bottom: var(--spacing-lg);
+  color: var(--color-primary-dark);
+}
+
+.heroSubtitle {
+  font-size: 1.25rem;
+  color: var(--color-text-muted);
+  margin-bottom: var(--spacing-2xl);
+}
+
+.heroActions {
+  display: flex;
+  gap: var(--spacing-md);
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* Services Section */
+.servicesGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-xl);
+  margin-top: var(--spacing-2xl);
+}
+
+@media (min-width: 768px) {
+  .servicesGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.serviceCard {
+  background-color: var(--color-bg-main);
+  padding: var(--spacing-xl);
+  border-radius: var(--radius-lg);
+  text-align: center;
+  transition: transform var(--transition-normal);
+  border: 1px solid var(--color-border);
+}
+
+.serviceCard:hover {
+  transform: translateY(-4px);
+  border-color: rgba(10, 66, 117, 0.2);
+}
+
+.serviceIcon {
+  color: var(--color-secondary);
+  margin-bottom: var(--spacing-md);
+  display: inline-block;
+}
+
+/* Why Choose Us Section */
+.whyUsGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-xl);
+  margin-top: var(--spacing-2xl);
+}
+
+@media (min-width: 768px) {
+  .whyUsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.whyUsItem {
+  display: flex;
+  gap: var(--spacing-md);
+}
+
+.whyUsIcon {
+  color: var(--color-secondary);
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+/* CTA Sections */
+.ctaText {
+  font-size: 1.25rem;
+  margin-bottom: var(--spacing-xl);
+}

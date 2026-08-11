@@ -1,0 +1,129 @@
+.header {
+  background-color: var(--color-bg-card);
+  box-shadow: var(--shadow-sm);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.navContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 80px;
+}
+
+.logo {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-primary-dark);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.logo:hover {
+  color: var(--color-primary);
+}
+
+/* Desktop Navigation */
+.desktopNav {
+  display: none;
+  align-items: center;
+  gap: 2rem;
+}
+
+@media (min-width: 768px) {
+  .desktopNav {
+    display: flex;
+  }
+}
+
+.navLink {
+  color: var(--color-text-main);
+  font-weight: 500;
+  padding: 0.5rem 0;
+  position: relative;
+}
+
+.navLink:hover, .navLinkActive {
+  color: var(--color-primary);
+}
+
+.navLink::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  transform: scaleX(0);
+  height: 2px;
+  bottom: 0;
+  left: 0;
+  background-color: var(--color-primary);
+  transform-origin: bottom right;
+  transition: transform 0.25s ease-out;
+}
+
+.navLink:hover::after, .navLinkActive::after {
+  transform: scaleX(1);
+  transform-origin: bottom left;
+}
+
+/* Mobile Toggle */
+.mobileToggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--color-primary-dark);
+  padding: 0.5rem;
+}
+
+@media (min-width: 768px) {
+  .mobileToggle {
+    display: none;
+  }
+}
+
+/* Mobile Navigation Overlay */
+.mobileMenu {
+  position: fixed;
+  top: 80px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--color-bg-card);
+  display: flex;
+  flex-direction: column;
+  padding: var(--spacing-xl);
+  transform: translateX(100%);
+  transition: transform 0.3s ease-in-out;
+  z-index: 40;
+}
+
+.mobileMenuOpen {
+  transform: translateX(0);
+}
+
+.mobileNavLink {
+  font-size: 1.25rem;
+  font-weight: 600;
+  padding: var(--spacing-md) 0;
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text-main);
+}
+
+.mobileNavLink:last-child {
+  border-bottom: none;
+}
+
+.mobileNavLinkActive {
+  color: var(--color-primary);
+}
+
+.mobileMenu .btn {
+  margin-top: var(--spacing-xl);
+  width: 100%;
+}
