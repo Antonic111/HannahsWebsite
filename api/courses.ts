@@ -106,20 +106,27 @@ async function setKvCourses(courses: Course[]): Promise<boolean> {
   }
 }
 
+function getBlobToken(): string | undefined {
+  return (
+    process.env.BLOB_READ_WRITE_TOKEN ||
+    process.env.VERCEL_BLOB_READ_WRITE_TOKEN ||
+    process.env.READ_WRITE_TOKEN
+  );
+}
+
 // Helper: Vercel Blob (supports both Public and Private stores)
 async function getBlobCourses(): Promise<Course[] | null> {
-  if (!process.env.BLOB_READ_WRITE_TOKEN) return null;
+  const token = getBlobToken();
+  if (!token) return null;
 
   try {
     const { list } = await import('@vercel/blob');
-    const { blobs } = await list({ prefix: 'courses.json' });
+    const { blobs } = await list({ prefix: 'courses.json', token });
     if (blobs && blobs.length > 0) {
       const blob = blobs[0];
       const targetUrl = (blob as any).downloadUrl || blob.url;
       const res = await fetch(targetUrl, {
-        headers: process.env.BLOB_READ_WRITE_TOKEN
-          ? { Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}` }
-          : {},
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
       if (res.ok) {
         const data = await res.json();
@@ -135,7 +142,8 @@ async function getBlobCourses(): Promise<Course[] | null> {
 }
 
 async function setBlobCourses(courses: Course[]): Promise<boolean> {
-  if (!process.env.BLOB_READ_WRITE_TOKEN) return false;
+  const token = getBlobToken();
+  if (!token) return false;
 
   try {
     const { put } = await import('@vercel/blob');
@@ -144,12 +152,14 @@ async function setBlobCourses(courses: Course[]): Promise<boolean> {
       await put('courses.json', JSON.stringify(courses), {
         access: 'public',
         addRandomSuffix: false,
+        token,
       });
       return true;
     } catch {
       await put('courses.json', JSON.stringify(courses), {
         access: 'private' as any,
         addRandomSuffix: false,
+        token,
       });
       return true;
     }
@@ -170,7 +180,7 @@ export default async function handler(req: any, res: any) {
   }
 
   const hasKv = Boolean(process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL);
-  const hasBlob = Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+  const hasBlob = Boolean(getBlobToken());
   const isCloudStorageAvailable = hasKv || hasBlob;
 
   // GET: Fetch live courses
@@ -198,7 +208,17 @@ export default async function handler(req: any, res: any) {
         });
       }
 
-      // 3. Fallback: Storage not configured in Vercel yet
+      // 3. If Cloud Storage token is connected but no courses have been uploaded yet (new store)
+      if (isCloudStorageAvailable) {
+        return res.status(200).json({
+          success: true,
+          courses: DEFAULT_COURSES,
+          source: hasBlob ? 'vercel-blob-ready' : 'vercel-kv-ready',
+          storageConnected: true,
+        });
+      }
+
+      // 4. Fallback: Storage not configured in Vercel yet
       return res.status(200).json({
         success: true,
         courses: DEFAULT_COURSES,
@@ -211,7 +231,7 @@ export default async function handler(req: any, res: any) {
         success: true,
         courses: DEFAULT_COURSES,
         source: 'fallback',
-        storageConnected: false,
+        storageConnected: isCloudStorageAvailable,
       });
     }
   }
