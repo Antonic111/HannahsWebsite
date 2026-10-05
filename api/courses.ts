@@ -106,7 +106,7 @@ async function setKvCourses(courses: Course[]): Promise<boolean> {
   }
 }
 
-// Helper: Vercel Blob
+// Helper: Vercel Blob (supports both Public and Private stores)
 async function getBlobCourses(): Promise<Course[] | null> {
   if (!process.env.BLOB_READ_WRITE_TOKEN) return null;
 
@@ -114,7 +114,13 @@ async function getBlobCourses(): Promise<Course[] | null> {
     const { list } = await import('@vercel/blob');
     const { blobs } = await list({ prefix: 'courses.json' });
     if (blobs && blobs.length > 0) {
-      const res = await fetch(blobs[0].url);
+      const blob = blobs[0];
+      const targetUrl = (blob as any).downloadUrl || blob.url;
+      const res = await fetch(targetUrl, {
+        headers: process.env.BLOB_READ_WRITE_TOKEN
+          ? { Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}` }
+          : {},
+      });
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data) && data.length > 0) {
@@ -133,11 +139,20 @@ async function setBlobCourses(courses: Course[]): Promise<boolean> {
 
   try {
     const { put } = await import('@vercel/blob');
-    await put('courses.json', JSON.stringify(courses), {
-      access: 'public',
-      addRandomSuffix: false,
-    });
-    return true;
+    // Try public access first, fallback to private access
+    try {
+      await put('courses.json', JSON.stringify(courses), {
+        access: 'public',
+        addRandomSuffix: false,
+      });
+      return true;
+    } catch {
+      await put('courses.json', JSON.stringify(courses), {
+        access: 'private' as any,
+        addRandomSuffix: false,
+      });
+      return true;
+    }
   } catch (err) {
     console.warn('Vercel Blob write error:', err);
     return false;
