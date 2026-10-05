@@ -106,6 +106,9 @@ async function setKvCourses(courses: Course[]): Promise<boolean> {
   }
 }
 
+// In-memory hot cache for zero-latency serverless responses
+let memoryCache: { courses: Course[]; updatedAt: number } | null = null;
+
 function getBlobToken(): string | undefined {
   return (
     process.env.BLOB_READ_WRITE_TOKEN ||
@@ -114,33 +117,48 @@ function getBlobToken(): string | undefined {
   );
 }
 
-// Helper: Vercel Blob (supports both Public and Private stores)
-async function getBlobCourses(): Promise<Course[] | null> {
+// Helper: Vercel Blob (supports versioned storage to eliminate CDN overwrite delays)
+async function getBlobCourses(): Promise<{ courses: Course[]; updatedAt: number } | null> {
   const token = getBlobToken();
   if (!token) return null;
 
   try {
     const { list } = await import('@vercel/blob');
-    const { blobs } = await list({ prefix: 'courses.json', token });
+    // Check versioned blobs first, then fallback to base prefix
+    let { blobs } = await list({ prefix: 'data/courses-', token });
+    if (!blobs || blobs.length === 0) {
+      const fallback = await list({ prefix: 'courses', token });
+      blobs = fallback.blobs;
+    }
+
     if (blobs && blobs.length > 0) {
-      // Sort newest first by uploadedAt timestamp!
+      // Sort newest first by uploadedAt timestamp
       const sortedBlobs = [...blobs].sort(
         (a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime()
       );
       const latestBlob = sortedBlobs[0];
       const targetUrl = (latestBlob as any).downloadUrl || latestBlob.url;
-      // Add cache buster and cache: 'no-store' so we always fetch the newest saved courses
       const fetchUrl = targetUrl.includes('?') 
         ? `${targetUrl}&_t=${Date.now()}` 
         : `${targetUrl}?_t=${Date.now()}`;
+      
       const res = await fetch(fetchUrl, {
         cache: 'no-store',
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
       if (res.ok) {
         const data = await res.json();
+        if (data && Array.isArray(data.courses)) {
+          return {
+            courses: data.courses,
+            updatedAt: Number(data.updatedAt) || new Date(latestBlob.uploadedAt).getTime(),
+          };
+        }
         if (Array.isArray(data)) {
-          return data;
+          return {
+            courses: data,
+            updatedAt: new Date(latestBlob.uploadedAt).getTime(),
+          };
         }
       }
     }
@@ -150,17 +168,21 @@ async function getBlobCourses(): Promise<Course[] | null> {
   return null;
 }
 
-async function setBlobCourses(courses: Course[]): Promise<boolean> {
+async function setBlobCourses(courses: Course[], updatedAt: number): Promise<boolean> {
   const token = getBlobToken();
   if (!token) return false;
 
   try {
     const { put, list, del } = await import('@vercel/blob');
     let newBlobUrl: string | null = null;
+    const payload = JSON.stringify({ courses, updatedAt });
 
-    // Try public access first with allowOverwrite: true and zero cache
+    // Use a unique versioned pathname. 
+    // This completely bypasses Vercel CDN's 60-second overwrite caching penalty!
+    const versionedName = `data/courses-${updatedAt}.json`;
+
     try {
-      const res = await put('courses.json', JSON.stringify(courses), {
+      const res = await put(versionedName, payload, {
         access: 'public',
         addRandomSuffix: false,
         allowOverwrite: true,
@@ -170,7 +192,7 @@ async function setBlobCourses(courses: Course[]): Promise<boolean> {
       newBlobUrl = res.url;
     } catch (pubErr) {
       console.warn('Vercel Blob public write failed, trying private:', pubErr);
-      const res = await put('courses.json', JSON.stringify(courses), {
+      const res = await put(versionedName, payload, {
         access: 'private' as any,
         addRandomSuffix: false,
         allowOverwrite: true,
@@ -180,15 +202,15 @@ async function setBlobCourses(courses: Course[]): Promise<boolean> {
       newBlobUrl = res.url;
     }
 
-    // Clean up any stale or duplicated older blobs matching courses.json
+    // Clean up older blobs in background so storage stays clean
     try {
-      const { blobs } = await list({ prefix: 'courses.json', token });
+      const { blobs } = await list({ prefix: 'data/courses-', token });
       if (blobs && blobs.length > 1 && newBlobUrl) {
         const staleUrls = blobs
           .filter(b => b.url !== newBlobUrl)
           .map(b => b.url);
         if (staleUrls.length > 0) {
-          await del(staleUrls, { token });
+          del(staleUrls, { token }).catch(() => {});
         }
       }
     } catch (cleanupErr) {
@@ -220,23 +242,39 @@ export default async function handler(req: any, res: any) {
   // GET: Fetch live courses
   if (req.method === 'GET') {
     try {
+      // 0. Instant memory cache check (fastest path, 0ms latency)
+      if (memoryCache && Array.isArray(memoryCache.courses)) {
+        return res.status(200).json({
+          success: true,
+          courses: memoryCache.courses,
+          updatedAt: memoryCache.updatedAt,
+          source: 'memory-cache',
+          storageConnected: true,
+        });
+      }
+
       // 1. Try Vercel KV / Redis first
       const kvCourses = await getKvCourses();
       if (kvCourses) {
+        const now = Date.now();
+        memoryCache = { courses: kvCourses, updatedAt: now };
         return res.status(200).json({
           success: true,
           courses: kvCourses,
+          updatedAt: now,
           source: 'vercel-kv',
           storageConnected: true,
         });
       }
 
       // 2. Try Vercel Blob next
-      const blobCourses = await getBlobCourses();
-      if (blobCourses) {
+      const blobResult = await getBlobCourses();
+      if (blobResult && Array.isArray(blobResult.courses)) {
+        memoryCache = blobResult;
         return res.status(200).json({
           success: true,
-          courses: blobCourses,
+          courses: blobResult.courses,
+          updatedAt: blobResult.updatedAt,
           source: 'vercel-blob',
           storageConnected: true,
         });
@@ -247,6 +285,7 @@ export default async function handler(req: any, res: any) {
         return res.status(200).json({
           success: true,
           courses: DEFAULT_COURSES,
+          updatedAt: Date.now(),
           source: hasBlob ? 'vercel-blob-ready' : 'vercel-kv-ready',
           storageConnected: true,
         });
@@ -256,6 +295,7 @@ export default async function handler(req: any, res: any) {
       return res.status(200).json({
         success: true,
         courses: DEFAULT_COURSES,
+        updatedAt: 0,
         source: 'default',
         storageConnected: false,
       });
@@ -264,6 +304,7 @@ export default async function handler(req: any, res: any) {
       return res.status(200).json({
         success: true,
         courses: DEFAULT_COURSES,
+        updatedAt: 0,
         source: 'fallback',
         storageConnected: isCloudStorageAvailable,
       });
@@ -283,15 +324,20 @@ export default async function handler(req: any, res: any) {
       }
 
       const coursesToSave = req.body && req.body.courses ? req.body.courses : req.body;
+      const clientUpdatedAt = req.body && req.body.updatedAt ? Number(req.body.updatedAt) : Date.now();
+
       if (!Array.isArray(coursesToSave)) {
         return res.status(400).json({ success: false, error: 'Invalid payload: courses must be an array' });
       }
+
+      // Update warm memory cache immediately!
+      memoryCache = { courses: coursesToSave, updatedAt: clientUpdatedAt };
 
       // 1. Save to Vercel KV if available
       const savedToKv = await setKvCourses(coursesToSave);
 
       // 2. Save to Vercel Blob if available
-      const savedToBlob = await setBlobCourses(coursesToSave);
+      const savedToBlob = await setBlobCourses(coursesToSave, clientUpdatedAt);
 
       if (isCloudStorageAvailable && !savedToKv && !savedToBlob) {
         console.error('Failed to write to connected cloud storage');
@@ -307,6 +353,7 @@ export default async function handler(req: any, res: any) {
         success: true,
         message: 'Courses saved successfully',
         count: coursesToSave.length,
+        updatedAt: clientUpdatedAt,
         storage: storageType,
         storageConnected: isCloudStorageAvailable && (savedToKv || savedToBlob),
       });

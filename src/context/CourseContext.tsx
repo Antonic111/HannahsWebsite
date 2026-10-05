@@ -51,7 +51,7 @@ export const CourseProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [storageConnected, setStorageConnected] = useState<boolean | null>(null);
 
   // Sync to Vercel Serverless API & Storage
-  const syncToVercel = async (coursesToSync: Course[]): Promise<boolean> => {
+  const syncToVercel = async (coursesToSync: Course[], clientUpdatedAt: number): Promise<boolean> => {
     setIsSyncing(true);
     setSyncStatus('syncing');
     try {
@@ -61,7 +61,10 @@ export const CourseProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           'Content-Type': 'application/json',
           'x-admin-password': ADMIN_PASSWORD,
         },
-        body: JSON.stringify({ courses: coursesToSync }),
+        body: JSON.stringify({
+          courses: coursesToSync,
+          updatedAt: clientUpdatedAt,
+        }),
       });
 
       if (res.ok) {
@@ -69,6 +72,7 @@ export const CourseProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         setStorageConnected(Boolean(data && data.storageConnected));
         setSyncStatus('synced');
         localStorage.setItem('r2r_courses', JSON.stringify(coursesToSync));
+        localStorage.setItem('r2r_courses_updated_at', String(clientUpdatedAt));
         return true;
       } else {
         setSyncStatus('error');
@@ -100,15 +104,25 @@ export const CourseProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           const isConnected = Boolean(data && data.storageConnected);
           setStorageConnected(isConnected);
 
-          // CRITICAL: Only overwrite local courses if cloud storage (KV or Blob) is actively connected!
-          // If cloud storage is not yet connected, NEVER wipe out courses saved in browser localStorage!
           if (isConnected && data && Array.isArray(data.courses)) {
+            const serverUpdatedAt = Number(data.updatedAt) || 0;
+            const localSavedTimestamp = Number(localStorage.getItem('r2r_courses_updated_at')) || 0;
+
+            // CRITICAL ANTI-DESYNC GUARD:
+            // If the user made a change in this browser more recently than the server's response timestamp,
+            // DO NOT OVERWRITE the fresh local change with an older replica response!
+            if (localSavedTimestamp > 0 && serverUpdatedAt > 0 && serverUpdatedAt < localSavedTimestamp) {
+              setSyncStatus('synced');
+              return;
+            }
+
             const formatted = data.courses.map((c: Course) => ({
               ...c,
               icon: c.icon || LEGACY_DEFAULT_ICONS[c.id] || 'BookOpen',
             }));
             setCourses(formatted);
             localStorage.setItem('r2r_courses', JSON.stringify(formatted));
+            localStorage.setItem('r2r_courses_updated_at', String(serverUpdatedAt || Date.now()));
             setSyncStatus('synced');
           } else {
             setSyncStatus('idle');
@@ -131,23 +145,29 @@ export const CourseProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const addCourse = async (course: Course): Promise<boolean> => {
     const updated = [...courses, course];
+    const timestamp = Date.now();
     setCourses(updated);
     localStorage.setItem('r2r_courses', JSON.stringify(updated));
-    return await syncToVercel(updated);
+    localStorage.setItem('r2r_courses_updated_at', String(timestamp));
+    return await syncToVercel(updated, timestamp);
   };
 
   const updateCourse = async (id: string, updatedCourse: Course): Promise<boolean> => {
     const updated = courses.map(c => c.id === id ? updatedCourse : c);
+    const timestamp = Date.now();
     setCourses(updated);
     localStorage.setItem('r2r_courses', JSON.stringify(updated));
-    return await syncToVercel(updated);
+    localStorage.setItem('r2r_courses_updated_at', String(timestamp));
+    return await syncToVercel(updated, timestamp);
   };
 
   const deleteCourse = async (id: string): Promise<boolean> => {
     const updated = courses.filter(c => c.id !== id);
+    const timestamp = Date.now();
     setCourses(updated);
     localStorage.setItem('r2r_courses', JSON.stringify(updated));
-    return await syncToVercel(updated);
+    localStorage.setItem('r2r_courses_updated_at', String(timestamp));
+    return await syncToVercel(updated, timestamp);
   };
 
   const getCourse = (id: string) => {
@@ -155,9 +175,11 @@ export const CourseProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   const reorderCourses = async (newCourses: Course[]): Promise<boolean> => {
+    const timestamp = Date.now();
     setCourses(newCourses);
     localStorage.setItem('r2r_courses', JSON.stringify(newCourses));
-    return await syncToVercel(newCourses);
+    localStorage.setItem('r2r_courses_updated_at', String(timestamp));
+    return await syncToVercel(newCourses, timestamp);
   };
 
   return (
