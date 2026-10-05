@@ -80,15 +80,18 @@ export const CourseProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     try {
       const res = await fetch('/api/courses');
       if (res.ok) {
-        const data = await res.json();
-        if (data && Array.isArray(data.courses) && data.courses.length > 0) {
-          const formatted = data.courses.map((c: Course) => ({
-            ...c,
-            icon: c.icon || LEGACY_DEFAULT_ICONS[c.id] || 'BookOpen',
-          }));
-          setCourses(formatted);
-          localStorage.setItem('r2r_courses', JSON.stringify(formatted));
-          setSyncStatus('synced');
+        const contentType = res.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          const data = await res.json();
+          if (data && Array.isArray(data.courses) && data.courses.length > 0) {
+            const formatted = data.courses.map((c: Course) => ({
+              ...c,
+              icon: c.icon || LEGACY_DEFAULT_ICONS[c.id] || 'BookOpen',
+            }));
+            setCourses(formatted);
+            localStorage.setItem('r2r_courses', JSON.stringify(formatted));
+            setSyncStatus('synced');
+          }
         }
       }
     } catch {
