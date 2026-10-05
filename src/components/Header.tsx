@@ -59,21 +59,50 @@ export const Header: React.FC = () => {
         </button>
       </div>
 
-      {/* Mobile Navigation Menu */}
-      <nav className={`${styles.mobileMenu} ${isMobileMenuOpen ? styles.mobileMenuOpen : ''}`}>
-        {navLinks.map((link) => (
-          <Link
-            key={link.path}
-            to={link.path}
-            className={`${styles.mobileNavLink} ${
-              location.pathname === link.path ? styles.mobileNavLinkActive : ''
-            }`}
-            onClick={closeMenu}
-          >
-            {link.name}
+      {/* Mobile Navigation Full Viewport Menu */}
+      <div 
+        className={`${styles.mobileMenu} ${isMobileMenuOpen ? styles.mobileMenuOpen : ''}`}
+        aria-hidden={!isMobileMenuOpen}
+      >
+        <div className={styles.mobileMenuHeader}>
+          <Link to="/" className={styles.logo} onClick={closeMenu}>
+            <img src="/cpr_logo.png" alt="Ready to Respond Logo" className={styles.logoImageMobile} />
           </Link>
-        ))}
-      </nav>
+          <button
+            className={styles.mobileCloseBtn}
+            onClick={closeMenu}
+            aria-label="Close menu"
+          >
+            <X size={28} />
+          </button>
+        </div>
+
+        <nav className={styles.mobileNavLinks}>
+          {navLinks.map((link) => (
+            <Link
+              key={link.path}
+              to={link.path}
+              className={`${styles.mobileNavLink} ${
+                location.pathname === link.path ? styles.mobileNavLinkActive : ''
+              }`}
+              onClick={closeMenu}
+            >
+              {link.name}
+            </Link>
+          ))}
+
+          <div className={styles.mobileMenuFooter}>
+            <Link 
+              to="/contact" 
+              className="btn btn-secondary" 
+              onClick={closeMenu}
+              style={{ width: '100%', justifyContent: 'center', padding: '0.85rem' }}
+            >
+              Contact / Book Class
+            </Link>
+          </div>
+        </nav>
+      </div>
     </header>
   );
 };

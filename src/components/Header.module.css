@@ -90,32 +90,76 @@
   }
 }
 
-/* Mobile Navigation Overlay */
+/* Mobile Navigation Full Viewport Overlay */
 .mobileMenu {
   position: fixed;
-  top: 80px;
+  top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: var(--color-bg-card);
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  background-color: var(--color-bg-card, #ffffff);
   display: flex;
   flex-direction: column;
-  padding: var(--spacing-xl);
   transform: translateX(100%);
-  transition: transform 0.3s ease-in-out;
-  z-index: 40;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 9999;
+  overflow-y: auto;
+  box-sizing: border-box;
 }
 
 .mobileMenuOpen {
   transform: translateX(0);
 }
 
+.mobileMenuHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.logoImageMobile {
+  height: 60px;
+  width: auto;
+  max-width: 220px;
+  object-fit: contain;
+}
+
+.mobileCloseBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--color-primary-dark);
+  padding: 0.5rem;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+}
+
+.mobileCloseBtn:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.mobileNavLinks {
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem 1.25rem 2.5rem;
+  flex-grow: 1;
+}
+
 .mobileNavLink {
-  font-size: 1.25rem;
+  font-size: 1.35rem;
   font-weight: 600;
-  padding: var(--spacing-md) 0;
+  padding: 1.1rem 0;
   border-bottom: 1px solid var(--color-border);
   color: var(--color-text-main);
+  text-decoration: none;
+  transition: color 0.2s ease;
 }
 
 .mobileNavLink:last-child {
@@ -123,10 +167,14 @@
 }
 
 .mobileNavLinkActive {
+  color: var(--color-secondary, #dc2626);
+}
+
+.mobileNavLink:hover {
   color: var(--color-primary);
 }
 
-.mobileMenu .btn {
-  margin-top: var(--spacing-xl);
-  width: 100%;
+.mobileMenuFooter {
+  margin-top: auto;
+  padding-top: 2rem;
 }
