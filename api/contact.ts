@@ -123,23 +123,10 @@ export default async function handler(req: any, res: any) {
       message: rawMessage,
     };
 
-    // 7. Trigger the Resend Custom Event: inquiry.created
-    // This allows Resend Automations to trigger customer confirmation emails, follow-ups, etc.
-    const eventResponse = await resend.events.send({
-      event: 'inquiry.created',
-      email: rawEmail,
-      payload,
-    });
-
-    if (eventResponse.error) {
-      console.error('[Resend Event Error] Failed to trigger inquiry.created:', eventResponse.error.message || eventResponse.error);
-      return res.status(500).json({ 
-        error: 'Unable to process your inquiry right now. Please try again later.' 
-      });
-    }
-
-    // 8. Deliver business notification email to readytorespond4u@gmail.com
-    // (Preserves existing business notification flow without breaking)
+    // 7. Deliver business notification email to readytorespond4u@gmail.com
+    // (Preserves existing business notification flow so no leads are lost)
+    let emailDelivered = false;
+    let emailErrorMsg: string | null = null;
     try {
       const fromEmail = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
       const toEmail = process.env.BUSINESS_EMAIL || 'readytorespond4u@gmail.com';
@@ -148,7 +135,7 @@ export default async function handler(req: any, res: any) {
         ? `[Course Inquiry: ${payload.course}] from ${payload.name}`
         : `New Website Inquiry from ${payload.name}`;
 
-      await resend.emails.send({
+      const emailResponse = await resend.emails.send({
         from: fromEmail,
         to: [toEmail],
         replyTo: payload.email,
@@ -194,12 +181,85 @@ export default async function handler(req: any, res: any) {
           </div>
         `,
       });
+
+      if (emailResponse.error) {
+        emailErrorMsg = emailResponse.error.message || JSON.stringify(emailResponse.error);
+        console.error('[Resend Business Email Error]:', emailErrorMsg);
+      } else {
+        emailDelivered = true;
+      }
     } catch (bizNotificationError: any) {
-      // Log business email notification failure without failing the visitor response if event succeeded
-      console.error('[Resend Business Notification Error]', bizNotificationError?.message || bizNotificationError);
+      emailErrorMsg = bizNotificationError?.message || String(bizNotificationError);
+      console.error('[Resend Business Notification Exception]:', emailErrorMsg);
     }
 
-    return res.status(200).json({ success: true });
+    // 8. Trigger the Resend Custom Event: inquiry.created
+    // This allows Resend Automations to trigger customer confirmation emails, follow-ups, etc.
+    let eventTriggered = false;
+    let eventErrorMsg: string | null = null;
+
+    try {
+      let eventResponse = await resend.events.send({
+        event: 'inquiry.created',
+        email: rawEmail,
+        payload,
+      });
+
+      // If event was not found in Resend (404), attempt to auto-create the event definition and retry
+      if (eventResponse.error) {
+        const errMsg = eventResponse.error.message || '';
+        const statusCode = eventResponse.error.statusCode || (eventResponse.error as any).status;
+
+        if (statusCode === 404 || errMsg.toLowerCase().includes('not found')) {
+          console.warn('[Resend] Event "inquiry.created" not found in Resend account. Attempting auto-registration...');
+          const createResult = await resend.events.create({ name: 'inquiry.created' });
+          if (!createResult.error) {
+            console.log('[Resend] Event "inquiry.created" registered successfully. Retrying events.send...');
+            eventResponse = await resend.events.send({
+              event: 'inquiry.created',
+              email: rawEmail,
+              payload,
+            });
+          } else {
+            console.warn('[Resend] Could not auto-register event "inquiry.created":', createResult.error.message);
+          }
+        }
+      }
+
+      if (eventResponse.error) {
+        eventErrorMsg = eventResponse.error.message || JSON.stringify(eventResponse.error);
+        console.error('[Resend Event Error] Failed to trigger inquiry.created:', eventErrorMsg);
+        
+        // Helpful diagnostic logging for administrator in Vercel logs
+        if (eventResponse.error.name === 'restricted_api_key' || eventResponse.error.statusCode === 403) {
+          console.warn('[Resend Config Hint] Your RESEND_API_KEY appears to have "Sending access" only. To trigger custom events for Automations, generate an API key with "Full access" in Resend Dashboard -> API Keys.');
+        } else if (eventResponse.error.statusCode === 404) {
+          console.warn('[Resend Config Hint] Create the custom event "inquiry.created" in your Resend Dashboard under Automations / Events.');
+        }
+      } else {
+        eventTriggered = true;
+        console.log('[Resend] Successfully triggered event inquiry.created for', rawEmail);
+      }
+    } catch (evtErr: any) {
+      eventErrorMsg = evtErr?.message || String(evtErr);
+      console.error('[Resend Event Exception]:', eventErrorMsg);
+    }
+
+    // 9. Response handling:
+    // If either the business email or the event succeeded, the visitor's inquiry has been received!
+    if (emailDelivered || eventTriggered) {
+      return res.status(200).json({ 
+        success: true,
+        eventTriggered,
+        emailDelivered,
+      });
+    }
+
+    // Only return 500 if BOTH failed
+    console.error(`[Inquiry Failed] Both notification email (${emailErrorMsg}) and event (${eventErrorMsg}) failed.`);
+    return res.status(500).json({ 
+      error: 'Unable to process your inquiry right now. Please try again later.' 
+    });
   } catch (error: any) {
     // Log internal error server-side without leaking stack or secrets to the visitor
     console.error('[Handler Error]', error?.message || 'Unexpected error');
