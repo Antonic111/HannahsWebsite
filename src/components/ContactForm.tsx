@@ -182,7 +182,7 @@ export const ContactForm: React.FC = () => {
           name="message" 
           className="form-control" 
           rows={5} 
-          placeholder="Let us know your preferred dates, location, or questions..."
+          placeholder="Questions or additional details..."
           required
         ></textarea>
       </div>
