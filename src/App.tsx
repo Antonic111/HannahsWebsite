@@ -1,4 +1,5 @@
-import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
+import { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Outlet, useLocation } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
@@ -13,15 +14,30 @@ import { Dashboard } from './pages/admin/Dashboard';
 import { CourseManager } from './pages/admin/CourseManager';
 import { CourseEditor } from './pages/admin/CourseEditor';
 
-const PublicLayout = () => (
-  <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-    <Header />
-    <main style={{ flexGrow: 1 }}>
-      <Outlet />
-    </main>
-    <Footer />
-  </div>
-);
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, [pathname]);
+
+  return null;
+};
+
+const PublicLayout = () => {
+  const location = useLocation();
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+      <ScrollToTop />
+      <Header />
+      <main style={{ flexGrow: 1 }} key={location.pathname} className="page-fade-up">
+        <Outlet />
+      </main>
+      <Footer />
+    </div>
+  );
+};
 
 function App() {
   return (

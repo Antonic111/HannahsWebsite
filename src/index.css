@@ -249,3 +249,31 @@ textarea.form-control {
   h2 { font-size: 1.75rem; }
   .section { padding: var(--spacing-2xl) 0; }
 }
+
+/* Page & Element Fade Up Animations */
+@keyframes fadeUp {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-fade-up,
+.fade-up {
+  animation: fadeUp 0.38s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: opacity, transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-fade-up,
+  .fade-up {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+

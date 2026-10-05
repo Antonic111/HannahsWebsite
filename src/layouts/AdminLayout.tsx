@@ -53,7 +53,7 @@ export const AdminLayout: React.FC = () => {
       </aside>
 
       {/* Main Content Area */}
-      <main className={styles.mainContent}>
+      <main className={`${styles.mainContent} page-fade-up`} key={location.pathname}>
         <Outlet />
       </main>
     </div>
