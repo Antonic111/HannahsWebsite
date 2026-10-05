@@ -95,51 +95,49 @@ export const ContactForm: React.FC = () => {
 
   return (
     <form className={styles.form} onSubmit={handleSubmit}>
-      {/* Visual Tag Badge when a course is selected */}
-      {selectedCourse && selectedCourse !== 'General Inquiry' && (
-        <div className={styles.courseTagBadge}>
-          <div className={styles.badgeLeft}>
-            <div className={styles.badgeIcon}>
-              <BookOpen size={16} />
-            </div>
-            <div className={styles.badgeText}>
-              <span className={styles.badgePre}>Inquiring About Course</span>
-              <span className={styles.badgeCourse}>{selectedCourse}</span>
-            </div>
-          </div>
-          <button 
-            type="button" 
-            onClick={handleClearCourse}
-            className={styles.clearBadgeBtn}
-            aria-label="Remove course selection"
-            title="Clear course selection"
-          >
-            <X size={15} />
-          </button>
-        </div>
-      )}
-
       {/* Hidden input to guarantee the course is submitted in form payload */}
       <input type="hidden" name="course" value={selectedCourse} />
 
       <div className="form-group">
         <label htmlFor="courseSelect" className="form-label">Interested Course / Program</label>
-        <select 
-          id="courseSelect" 
-          className="form-control"
-          value={selectedCourse}
-          onChange={handleCourseChange}
-        >
-          <option value="">General Inquiry (No specific course)</option>
-          {isCustomOrUnlisted && (
-            <option value={selectedCourse}>{selectedCourse}</option>
-          )}
-          {courses.map(c => (
-            <option key={c.id} value={c.name}>{c.name}</option>
-          ))}
-          <option value="Group Training">Group Training / Corporate Workshop</option>
-          <option value="Other">Other / Custom Certification</option>
-        </select>
+        {selectedCourse && selectedCourse !== 'General Inquiry' ? (
+          <div className={styles.selectedCourseCard}>
+            <div className={styles.badgeLeft}>
+              <div className={styles.badgeIcon}>
+                <BookOpen size={16} />
+              </div>
+              <div className={styles.badgeText}>
+                <span className={styles.badgeCourse}>{selectedCourse}</span>
+              </div>
+            </div>
+            <button 
+              type="button" 
+              onClick={handleClearCourse}
+              className={styles.clearBadgeBtn}
+              aria-label="Change or clear course selection"
+              title="Change course"
+            >
+              <X size={16} />
+            </button>
+          </div>
+        ) : (
+          <select 
+            id="courseSelect" 
+            className="form-control"
+            value=""
+            onChange={handleCourseChange}
+          >
+            <option value="">General Inquiry (No specific course)</option>
+            {isCustomOrUnlisted && (
+              <option value={selectedCourse}>{selectedCourse}</option>
+            )}
+            {courses.map(c => (
+              <option key={c.id} value={c.name}>{c.name}</option>
+            ))}
+            <option value="Group Training">Group Training / Corporate Workshop</option>
+            <option value="Other">Other</option>
+          </select>
+        )}
       </div>
 
       <div className="form-group">
