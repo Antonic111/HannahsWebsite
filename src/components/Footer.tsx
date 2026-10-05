@@ -17,6 +17,9 @@ export const Footer: React.FC = () => {
             <p>
               Professional BLS and CPR training in Ontario, Canada. Learn the skills to save a life today.
             </p>
+            <p className={styles.copyright}>
+              &copy; {new Date().getFullYear()} Ready to Respond. All rights reserved.
+            </p>
           </div>
 
           {/* Quick Links */}
@@ -46,17 +49,6 @@ export const Footer: React.FC = () => {
                 <span>readytorespond4u@gmail.com</span>
               </div>
             </div>
-          </div>
-        </div>
-
-        {/* Bottom Bar */}
-        <div className={styles.bottomBar}>
-          <div>
-            &copy; {new Date().getFullYear()} Ready to Respond. All rights reserved.
-          </div>
-          <div className={styles.legalLinks}>
-            <a href="#privacy">[Privacy Policy]</a>
-            <a href="#terms">[Terms of Service]</a>
           </div>
         </div>
       </div>
