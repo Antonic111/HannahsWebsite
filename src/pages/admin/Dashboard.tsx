@@ -5,7 +5,7 @@ import { BookOpen, Users, DollarSign } from 'lucide-react';
 import { useCourses } from '../../context/CourseContext';
 
 export const Dashboard: React.FC = () => {
-  const { courses } = useCourses();
+  const { courses, storageConnected } = useCourses();
 
   const stats = [
     { title: 'Total Courses', value: courses.length, icon: <BookOpen size={24} /> },
@@ -52,9 +52,9 @@ export const Dashboard: React.FC = () => {
         <div style={{ 
           marginTop: '1.5rem', 
           padding: '1rem 1.25rem', 
-          backgroundColor: '#f8fafc', 
+          backgroundColor: storageConnected ? '#f0fdf4' : '#fffbeb', 
           borderRadius: 'var(--radius-md)', 
-          border: '1px solid var(--color-border)',
+          border: storageConnected ? '1px solid #bbf7d0' : '1px solid #fde68a',
           display: 'flex',
           alignItems: 'center',
           gap: '1rem',
@@ -63,11 +63,21 @@ export const Dashboard: React.FC = () => {
         }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-              <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#22c55e', display: 'inline-block' }} />
-              <strong style={{ fontSize: '0.9rem', color: 'var(--color-primary-dark)' }}>Vercel Cloud Integration</strong>
+              <span style={{ 
+                width: '8px', 
+                height: '8px', 
+                borderRadius: '50%', 
+                backgroundColor: storageConnected ? '#22c55e' : '#f59e0b', 
+                display: 'inline-block' 
+              }} />
+              <strong style={{ fontSize: '0.9rem', color: storageConnected ? '#15803d' : '#92400e' }}>
+                {storageConnected ? 'Vercel Cloud Storage Connected' : 'Local Browser Storage Active'}
+              </strong>
             </div>
-            <span style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
-              Connected via Vercel Serverless API (<code style={{ fontSize: '0.8rem' }}>/api/courses</code>). Edits are saved directly to Vercel storage for all site visitors.
+            <span style={{ fontSize: '0.85rem', color: storageConnected ? '#166534' : '#78350f' }}>
+              {storageConnected 
+                ? 'Changes are automatically synced to Vercel storage and visible to all visitors on readytorespond.ca.'
+                : 'Custom courses are preserved safely in your browser. To sync live across all devices and visitors, connect Vercel Blob or KV in your Vercel Dashboard under Storage.'}
             </span>
           </div>
 

@@ -11,6 +11,7 @@ interface CourseContextType {
   reorderCourses: (newCourses: Course[]) => void;
   syncStatus: 'synced' | 'syncing' | 'error' | 'idle';
   isSyncing: boolean;
+  storageConnected: boolean | null;
   refreshCourses: () => Promise<void>;
 }
 
@@ -47,6 +48,7 @@ export const CourseProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const [syncStatus, setSyncStatus] = useState<'synced' | 'syncing' | 'error' | 'idle'>('idle');
   const [isSyncing, setIsSyncing] = useState(false);
+  const [storageConnected, setStorageConnected] = useState<boolean | null>(null);
 
   // Sync to Vercel Serverless API & Storage
   const syncToVercel = async (coursesToSync: Course[]) => {
@@ -63,6 +65,8 @@ export const CourseProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       });
 
       if (res.ok) {
+        const data = await res.json();
+        setStorageConnected(Boolean(data && data.storageConnected));
         setSyncStatus('synced');
       } else {
         setSyncStatus('error');
@@ -83,7 +87,12 @@ export const CourseProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         const contentType = res.headers.get('content-type');
         if (contentType && contentType.includes('application/json')) {
           const data = await res.json();
-          if (data && Array.isArray(data.courses) && data.courses.length > 0) {
+          const isConnected = Boolean(data && data.storageConnected);
+          setStorageConnected(isConnected);
+
+          // CRITICAL: Only overwrite local courses if cloud storage (KV or Blob) is actively connected!
+          // If cloud storage is not yet connected, NEVER wipe out courses saved in browser localStorage!
+          if (isConnected && data && Array.isArray(data.courses) && data.courses.length > 0) {
             const formatted = data.courses.map((c: Course) => ({
               ...c,
               icon: c.icon || LEGACY_DEFAULT_ICONS[c.id] || 'BookOpen',
@@ -91,6 +100,8 @@ export const CourseProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             setCourses(formatted);
             localStorage.setItem('r2r_courses', JSON.stringify(formatted));
             setSyncStatus('synced');
+          } else {
+            setSyncStatus('idle');
           }
         }
       }
@@ -145,6 +156,7 @@ export const CourseProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       reorderCourses,
       syncStatus,
       isSyncing,
+      storageConnected,
       refreshCourses
     }}>
       {children}

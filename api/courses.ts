@@ -154,26 +154,50 @@ export default async function handler(req: any, res: any) {
     return res.status(200).end();
   }
 
-  // GET: Fetch live courses - guaranteed to return 200 with valid courses
+  const hasKv = Boolean(process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL);
+  const hasBlob = Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+  const isCloudStorageAvailable = hasKv || hasBlob;
+
+  // GET: Fetch live courses
   if (req.method === 'GET') {
     try {
       // 1. Try Vercel KV / Redis first
       const kvCourses = await getKvCourses();
       if (kvCourses) {
-        return res.status(200).json({ success: true, courses: kvCourses, source: 'vercel-kv' });
+        return res.status(200).json({
+          success: true,
+          courses: kvCourses,
+          source: 'vercel-kv',
+          storageConnected: true,
+        });
       }
 
       // 2. Try Vercel Blob next
       const blobCourses = await getBlobCourses();
       if (blobCourses) {
-        return res.status(200).json({ success: true, courses: blobCourses, source: 'vercel-blob' });
+        return res.status(200).json({
+          success: true,
+          courses: blobCourses,
+          source: 'vercel-blob',
+          storageConnected: true,
+        });
       }
 
-      // 3. Fallback: Always return default courses with 200 OK so visitor page never breaks
-      return res.status(200).json({ success: true, courses: DEFAULT_COURSES, source: 'default' });
+      // 3. Fallback: Storage not configured in Vercel yet
+      return res.status(200).json({
+        success: true,
+        courses: DEFAULT_COURSES,
+        source: 'default',
+        storageConnected: false,
+      });
     } catch (err: any) {
       console.warn('GET /api/courses fallback to default:', err);
-      return res.status(200).json({ success: true, courses: DEFAULT_COURSES, source: 'fallback' });
+      return res.status(200).json({
+        success: true,
+        courses: DEFAULT_COURSES,
+        source: 'fallback',
+        storageConnected: false,
+      });
     }
   }
 
@@ -200,13 +224,14 @@ export default async function handler(req: any, res: any) {
       // 2. Save to Vercel Blob if available
       const savedToBlob = await setBlobCourses(coursesToSave);
 
-      const storageType = savedToKv ? 'vercel-kv' : savedToBlob ? 'vercel-blob' : 'cached';
+      const storageType = savedToKv ? 'vercel-kv' : savedToBlob ? 'vercel-blob' : 'local-browser';
 
       return res.status(200).json({
         success: true,
         message: 'Courses saved successfully',
         count: coursesToSave.length,
         storage: storageType,
+        storageConnected: isCloudStorageAvailable && (savedToKv || savedToBlob),
       });
     } catch (err: any) {
       console.error('Error saving courses:', err);
