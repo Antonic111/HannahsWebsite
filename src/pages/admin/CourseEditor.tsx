@@ -6,6 +6,7 @@ import type { Course } from '../../data/courses';
 import { FormattedDescription } from '../../components/FormattedText';
 import { IconPicker } from '../../components/admin/IconPicker';
 import { Bold, Italic, List, Plus, ExternalLink } from 'lucide-react';
+import styles from './CourseEditor.module.css';
 
 const parsePrice = (raw: string): string => {
   if (!raw || raw.includes('[')) return '';
@@ -206,20 +207,19 @@ export const CourseEditor: React.FC = () => {
   const durationPreview = formatDuration(durationHours, durationMinutes);
 
   return (
-    <div>
+    <div className={styles.editorWrapper}>
       <Helmet>
         <title>{isEditing ? 'Edit Course' : 'New Course'} | Admin | Ready to Respond</title>
       </Helmet>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', maxWidth: '800px' }}>
-        <h1 style={{ margin: 0 }}>{isEditing ? 'Edit Course' : 'Create New Course'}</h1>
+      <div className={styles.header}>
+        <h1 className={styles.title}>{isEditing ? 'Edit Course' : 'Create New Course'}</h1>
         {isEditing && id && (
           <a 
             href={`/classes/${id}`} 
             target="_blank" 
             rel="noopener noreferrer" 
-            className="btn btn-outline"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', textDecoration: 'none' }}
+            className={`btn btn-outline ${styles.viewLiveBtn}`}
             title="Open public course page in a new tab"
           >
             <ExternalLink size={15} />
@@ -228,10 +228,10 @@ export const CourseEditor: React.FC = () => {
         )}
       </div>
 
-      <div style={{ backgroundColor: '#fff', padding: '2rem', borderRadius: '0.5rem', boxShadow: 'var(--shadow-sm)', border: '1px solid var(--color-border)', maxWidth: '800px' }}>
+      <div className={styles.formCard}>
         <form onSubmit={handleSubmit}>
           
-          <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '1.5rem', marginBottom: '1.5rem', alignItems: 'start' }}>
+          <div className={styles.gridTwoCol}>
             <div className="form-group" style={{ marginBottom: 0 }}>
               <label htmlFor="name" className="form-label">Course Name *</label>
               <input type="text" id="name" name="name" className="form-control" value={formData.name} onChange={handleChange} required />
@@ -246,7 +246,7 @@ export const CourseEditor: React.FC = () => {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
+          <div className={styles.gridEqualCol}>
             {/* Price with Fixed Symbol & Number Restriction */}
             <div className="form-group" style={{ marginBottom: 0 }}>
               <label htmlFor="price" className="form-label">Price (CAD) *</label>
@@ -285,8 +285,8 @@ export const CourseEditor: React.FC = () => {
             {/* Duration Time Setter for Hours and Minutes */}
             <div className="form-group" style={{ marginBottom: 0 }}>
               <label className="form-label">Duration *</label>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.65rem' }}>
-                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+              <div className={styles.durationInputs}>
+                <div className={styles.durationField}>
                   <input
                     type="number"
                     id="durationHours"
@@ -299,21 +299,12 @@ export const CourseEditor: React.FC = () => {
                     min="0"
                     max="100"
                   />
-                  <span
-                    style={{
-                      position: 'absolute',
-                      right: '0.75rem',
-                      color: 'var(--color-text-muted)',
-                      fontSize: '0.85rem',
-                      pointerEvents: 'none',
-                      userSelect: 'none',
-                    }}
-                  >
+                  <span className={styles.durationSuffix}>
                     hrs
                   </span>
                 </div>
 
-                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                <div className={styles.durationField}>
                   <input
                     type="number"
                     id="durationMinutes"
@@ -327,16 +318,7 @@ export const CourseEditor: React.FC = () => {
                     max="59"
                     step="5"
                   />
-                  <span
-                    style={{
-                      position: 'absolute',
-                      right: '0.75rem',
-                      color: 'var(--color-text-muted)',
-                      fontSize: '0.85rem',
-                      pointerEvents: 'none',
-                      userSelect: 'none',
-                    }}
-                  >
+                  <span className={styles.durationSuffix}>
                     mins
                   </span>
                 </div>
@@ -692,7 +674,7 @@ export const CourseEditor: React.FC = () => {
             )}
           </div>
 
-          <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
+          <div className={styles.actionsRow}>
             <button type="submit" className="btn btn-primary" disabled={isSaving}>
               {isSaving ? 'Saving to Database...' : isEditing ? 'Save Changes' : 'Create Course'}
             </button>

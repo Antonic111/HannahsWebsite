@@ -1,40 +1,42 @@
 import React from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
-import { BookOpen, Users, DollarSign } from 'lucide-react';
+import { BookOpen, Users, DollarSign, Plus } from 'lucide-react';
 import { useCourses } from '../../context/CourseContext';
+import styles from './Dashboard.module.css';
 
 export const Dashboard: React.FC = () => {
   const { courses, storageConnected } = useCourses();
 
   const stats = [
-    { title: 'Total Courses', value: courses.length, icon: <BookOpen size={24} /> },
-    { title: 'Active Students', value: '--', icon: <Users size={24} /> },
-    { title: 'Monthly Revenue', value: '--', icon: <DollarSign size={24} /> },
+    { title: 'Total Courses', value: courses.length, icon: <BookOpen size={22} /> },
+    { title: 'Active Students', value: '--', icon: <Users size={22} /> },
+    { title: 'Monthly Revenue', value: '--', icon: <DollarSign size={22} /> },
   ];
 
   return (
-    <div>
+    <div className={styles.container}>
       <Helmet>
         <title>Admin Dashboard | Ready to Respond</title>
       </Helmet>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <h1 style={{ margin: 0 }}>Dashboard</h1>
-        <Link to="/admin/courses/new" className="btn btn-primary">
-          + Add Course
+      <div className={styles.header}>
+        <h1 className={styles.title}>Dashboard</h1>
+        <Link to="/admin/courses/new" className={`btn btn-primary ${styles.addBtn}`}>
+          <Plus size={16} />
+          <span>Add Course</span>
         </Link>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
+      <div className={styles.statsGrid}>
         {stats.map((stat, i) => (
-          <div key={i} style={{ backgroundColor: '#fff', padding: '1.5rem', borderRadius: '0.5rem', boxShadow: 'var(--shadow-sm)', border: '1px solid var(--color-border)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+          <div key={i} className={styles.statCard}>
+            <div className={styles.statInner}>
               <div>
-                <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--color-text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>{stat.title}</p>
-                <h3 style={{ margin: 0, fontSize: '2rem', color: 'var(--color-text-main)' }}>{stat.value}</h3>
+                <p className={styles.statTitle}>{stat.title}</p>
+                <h3 className={styles.statValue}>{stat.value}</h3>
               </div>
-              <div style={{ color: 'var(--color-primary)', backgroundColor: 'rgba(10, 66, 117, 0.1)', padding: '0.5rem', borderRadius: '0.5rem' }}>
+              <div className={styles.statIconBox}>
                 {stat.icon}
               </div>
             </div>
@@ -42,25 +44,20 @@ export const Dashboard: React.FC = () => {
         ))}
       </div>
 
-      <div style={{ backgroundColor: '#fff', padding: '1.75rem', borderRadius: '0.5rem', boxShadow: 'var(--shadow-sm)', border: '1px solid var(--color-border)' }}>
-        <h2 style={{ marginTop: 0, color: 'var(--color-primary-dark)' }}>Course Management & Live Updates</h2>
-        <p style={{ color: 'var(--color-text-main)', lineHeight: 1.6 }}>
+      <div className={styles.infoCard}>
+        <h2 className={styles.infoTitle}>Course Management & Live Updates</h2>
+        <p className={styles.infoText}>
           From here you can customize your courses, pricing, descriptions, icons, and display order. 
           Any edits you save automatically reflect on the public <strong>Classes & Pricing</strong> page and individual course pages.
         </p>
 
-        <div style={{ 
-          marginTop: '1.5rem', 
-          padding: '1rem 1.25rem', 
-          backgroundColor: storageConnected ? '#f0fdf4' : '#fffbeb', 
-          borderRadius: 'var(--radius-md)', 
-          border: storageConnected ? '1px solid #bbf7d0' : '1px solid #fde68a',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '1rem',
-          flexWrap: 'wrap',
-          justifyContent: 'space-between'
-        }}>
+        <div 
+          className={styles.storageAlert}
+          style={{ 
+            backgroundColor: storageConnected ? '#f0fdf4' : '#fffbeb', 
+            border: storageConnected ? '1px solid #bbf7d0' : '1px solid #fde68a',
+          }}
+        >
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
               <span style={{ 
@@ -74,14 +71,14 @@ export const Dashboard: React.FC = () => {
                 {storageConnected ? 'Vercel Cloud Storage Connected' : 'Local Browser Storage Active'}
               </strong>
             </div>
-            <span style={{ fontSize: '0.85rem', color: storageConnected ? '#166534' : '#78350f' }}>
+            <span style={{ fontSize: '0.85rem', color: storageConnected ? '#166534' : '#78350f', lineHeight: 1.4, display: 'inline-block' }}>
               {storageConnected 
                 ? 'Changes are automatically synced to Vercel storage and visible to all visitors on readytorespond.ca.'
                 : 'Custom courses are preserved safely in your browser. To sync live across all devices and visitors, connect Vercel Blob or KV in your Vercel Dashboard under Storage.'}
             </span>
           </div>
 
-          <Link to="/admin/courses" className="btn btn-outline" style={{ fontSize: '0.875rem' }}>
+          <Link to="/admin/courses" className={`btn btn-outline ${styles.storageBtn}`} style={{ fontSize: '0.875rem', whiteSpace: 'nowrap' }}>
             Manage Courses &rarr;
           </Link>
         </div>

@@ -340,3 +340,23 @@
   color: var(--color-primary-dark);
   background-color: #e2e8f0;
 }
+
+@media (max-width: 640px) {
+  .pickerContainer {
+    max-width: 100%;
+  }
+
+  .popover {
+    min-width: 0;
+    width: 100%;
+    left: 0;
+    right: 0;
+    max-width: 100%;
+  }
+
+  .grid {
+    grid-template-columns: repeat(auto-fill, minmax(42px, 1fr));
+    gap: 0.35rem;
+  }
+}
+
