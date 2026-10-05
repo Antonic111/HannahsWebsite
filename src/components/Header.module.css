@@ -173,8 +173,3 @@
 .mobileNavLink:hover {
   color: var(--color-primary);
 }
-
-.mobileMenuFooter {
-  margin-top: auto;
-  padding-top: 2rem;
-}

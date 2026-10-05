@@ -90,17 +90,6 @@ export const Header: React.FC = () => {
               {link.name}
             </Link>
           ))}
-
-          <div className={styles.mobileMenuFooter}>
-            <Link 
-              to="/contact" 
-              className="btn btn-secondary" 
-              onClick={closeMenu}
-              style={{ width: '100%', justifyContent: 'center', padding: '0.85rem' }}
-            >
-              Contact / Book Class
-            </Link>
-          </div>
         </nav>
       </div>
     </header>
