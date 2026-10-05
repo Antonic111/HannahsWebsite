@@ -130,7 +130,7 @@ export const CourseDetail: React.FC = () => {
 
                 <div className={styles.sidebarActions}>
                   <Link 
-                    to="/contact" 
+                    to={`/contact?course=${encodeURIComponent(course.name)}`} 
                     className={styles.inquireBtn}
                     aria-label={`Inquire about ${course.name}`}
                   >

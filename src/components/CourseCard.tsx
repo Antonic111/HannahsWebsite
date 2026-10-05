@@ -76,7 +76,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
             </Link>
           </div>
           <Link 
-            to="/contact" 
+            to={`/contact?course=${encodeURIComponent(course.name)}`} 
             className={styles.inquireBtn} 
             aria-label={`Inquire about ${course.name}`}
           >

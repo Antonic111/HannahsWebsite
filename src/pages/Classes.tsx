@@ -146,7 +146,7 @@ export const Classes: React.FC = () => {
 
               {/* Right Action Button */}
               <div className={styles.groupCtaAction}>
-                <Link to="/contact" className={styles.groupCtaBtn}>
+                <Link to="/contact?course=Group%20Training" className={styles.groupCtaBtn}>
                   <Mail size={18} className={styles.groupBtnIcon} />
                   <span>Request a Group Quote</span>
                   <ArrowRight size={18} className={styles.groupBtnArrow} />

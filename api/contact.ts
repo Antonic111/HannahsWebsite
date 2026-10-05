@@ -18,6 +18,11 @@ export default async function handler(req: any, res: any) {
     // Initialize Resend with the API key from environment variables
     const resend = new Resend(process.env.RESEND_API_KEY);
 
+    const hasCourse = course && course.trim() !== '' && course !== 'General Inquiry';
+    const emailSubject = hasCourse
+      ? `[Course Inquiry: ${course}] from ${name}`
+      : `New Website Inquiry from ${name}`;
+
     // Send the email
     const data = await resend.emails.send({
       // IMPORTANT: Until you buy and verify readytorespond.ca in Resend, 
@@ -28,15 +33,46 @@ export default async function handler(req: any, res: any) {
       // Note: When using onboarding@resend.dev, the 'to' email MUST be the 
       // exact email address you used to create your Resend.com account.
       to: ['readytorespond4u@gmail.com'], 
-      subject: `New Website Inquiry from ${name}`,
+      subject: emailSubject,
       html: `
-        <h2>New Contact Form Submission</h2>
-        <p><strong>Name:</strong> ${name}</p>
-        <p><strong>Email:</strong> ${email}</p>
-        <p><strong>Phone:</strong> ${phone || 'Not provided'}</p>
-        <p><strong>Interested Course:</strong> ${course || 'Not provided'}</p>
-        <p><strong>Message:</strong></p>
-        <p>${message.replace(/\n/g, '<br/>')}</p>
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #1e293b;">
+          <h2 style="color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; margin-top: 0;">New Contact Form Submission</h2>
+          
+          ${hasCourse ? `
+            <div style="background-color: #fef2f2; border-left: 4px solid #dc2626; padding: 14px 16px; margin: 18px 0; border-radius: 6px;">
+              <p style="margin: 0; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: #b91c1c; font-weight: 700;">Inquiring About Course</p>
+              <p style="margin: 4px 0 0 0; font-size: 18px; font-weight: 700; color: #991b1b;">${course}</p>
+            </div>
+          ` : ''}
+
+          <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
+            <tr>
+              <td style="padding: 8px 0; font-weight: 600; width: 140px; color: #64748b;">Full Name:</td>
+              <td style="padding: 8px 0; color: #0f172a; font-weight: 500;">${name}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; font-weight: 600; color: #64748b;">Email Address:</td>
+              <td style="padding: 8px 0; color: #0f172a;"><a href="mailto:${email}" style="color: #2563eb; text-decoration: none;">${email}</a></td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; font-weight: 600; color: #64748b;">Phone Number:</td>
+              <td style="padding: 8px 0; color: #0f172a;">${phone || 'Not provided'}</td>
+            </tr>
+            ${hasCourse ? `
+            <tr>
+              <td style="padding: 8px 0; font-weight: 600; color: #64748b;">Course / Program:</td>
+              <td style="padding: 8px 0; color: #0f172a; font-weight: 600;">${course}</td>
+            </tr>
+            ` : ''}
+          </table>
+
+          <div style="margin-top: 24px;">
+            <p style="font-weight: 600; color: #64748b; margin-bottom: 8px;">Message:</p>
+            <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 16px; white-space: pre-wrap; font-size: 15px; line-height: 1.6; color: #334155;">
+              ${message.replace(/\n/g, '<br/>')}
+            </div>
+          </div>
+        </div>
       `,
     });
 

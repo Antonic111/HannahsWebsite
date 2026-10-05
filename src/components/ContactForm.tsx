@@ -1,11 +1,45 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { BookOpen, X } from 'lucide-react';
+import { useCourses } from '../context/CourseContext';
 import styles from './ContactForm.module.css';
 
 export const ContactForm: React.FC = () => {
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { courses } = useCourses();
 
+  const courseQuery = searchParams.get('course') || '';
+  const [selectedCourse, setSelectedCourse] = useState<string>(courseQuery);
+
+  const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Sync state if URL query param changes
+  useEffect(() => {
+    if (courseQuery) {
+      setSelectedCourse(courseQuery);
+    }
+  }, [courseQuery]);
+
+  const handleClearCourse = () => {
+    setSelectedCourse('');
+    const newParams = new URLSearchParams(searchParams);
+    newParams.delete('course');
+    setSearchParams(newParams, { replace: true });
+  };
+
+  const handleCourseChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const val = e.target.value;
+    setSelectedCourse(val);
+    const newParams = new URLSearchParams(searchParams);
+    if (val && val !== 'General Inquiry') {
+      newParams.set('course', val);
+    } else {
+      newParams.delete('course');
+    }
+    setSearchParams(newParams, { replace: true });
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -53,8 +87,61 @@ export const ContactForm: React.FC = () => {
     );
   }
 
+  // Check if current course isn't in default list (e.g. custom created course or group training)
+  const isCustomOrUnlisted = selectedCourse && 
+    selectedCourse !== 'General Inquiry' && 
+    selectedCourse !== 'Group Training' && 
+    !courses.some(c => c.name.toLowerCase() === selectedCourse.toLowerCase());
+
   return (
     <form className={styles.form} onSubmit={handleSubmit}>
+      {/* Visual Tag Badge when a course is selected */}
+      {selectedCourse && selectedCourse !== 'General Inquiry' && (
+        <div className={styles.courseTagBadge}>
+          <div className={styles.badgeLeft}>
+            <div className={styles.badgeIcon}>
+              <BookOpen size={16} />
+            </div>
+            <div className={styles.badgeText}>
+              <span className={styles.badgePre}>Inquiring About Course</span>
+              <span className={styles.badgeCourse}>{selectedCourse}</span>
+            </div>
+          </div>
+          <button 
+            type="button" 
+            onClick={handleClearCourse}
+            className={styles.clearBadgeBtn}
+            aria-label="Remove course selection"
+            title="Clear course selection"
+          >
+            <X size={15} />
+          </button>
+        </div>
+      )}
+
+      {/* Hidden input to guarantee the course is submitted in form payload */}
+      <input type="hidden" name="course" value={selectedCourse} />
+
+      <div className="form-group">
+        <label htmlFor="courseSelect" className="form-label">Interested Course / Program</label>
+        <select 
+          id="courseSelect" 
+          className="form-control"
+          value={selectedCourse}
+          onChange={handleCourseChange}
+        >
+          <option value="">General Inquiry (No specific course)</option>
+          {isCustomOrUnlisted && (
+            <option value={selectedCourse}>{selectedCourse}</option>
+          )}
+          {courses.map(c => (
+            <option key={c.id} value={c.name}>{c.name}</option>
+          ))}
+          <option value="Group Training">Group Training / Corporate Workshop</option>
+          <option value="Other">Other / Custom Certification</option>
+        </select>
+      </div>
+
       <div className="form-group">
         <label htmlFor="name" className="form-label">Full Name</label>
         <input 
@@ -91,13 +178,13 @@ export const ContactForm: React.FC = () => {
       </div>
 
       <div className="form-group">
-        <label htmlFor="message" className="form-label">Message or Course Inquiry</label>
+        <label htmlFor="message" className="form-label">Message or Course Questions</label>
         <textarea 
           id="message" 
           name="message" 
           className="form-control" 
           rows={5} 
-          placeholder="How can we help you?"
+          placeholder="Let us know your preferred dates, location, or questions..."
           required
         ></textarea>
       </div>
