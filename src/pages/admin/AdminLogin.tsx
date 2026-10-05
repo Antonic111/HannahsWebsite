@@ -8,7 +8,6 @@ import styles from './AdminLogin.module.css';
 export const AdminLogin: React.FC = () => {
   const { login } = useAuth();
   const [password, setPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -27,7 +26,7 @@ export const AdminLogin: React.FC = () => {
       return;
     }
 
-    const success = login(password, rememberMe);
+    const success = login(password);
     if (!success) {
       setError('Incorrect password. Access denied.');
       setPassword('');
@@ -90,16 +89,6 @@ export const AdminLogin: React.FC = () => {
               </button>
             </div>
           </div>
-
-          <label className={styles.rememberRow}>
-            <input
-              type="checkbox"
-              className={styles.checkbox}
-              checked={rememberMe}
-              onChange={(e) => setRememberMe(e.target.checked)}
-            />
-            <span>Keep me logged in on this device</span>
-          </label>
 
           <button type="submit" className={styles.submitBtn}>
             <span>Unlock Admin Portal</span>

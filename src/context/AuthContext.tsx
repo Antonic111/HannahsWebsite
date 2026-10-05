@@ -1,8 +1,8 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
 interface AuthContextType {
   isAuthenticated: boolean;
-  login: (password: string, rememberMe?: boolean) => boolean;
+  login: (password: string) => boolean;
   logout: () => void;
 }
 
@@ -10,31 +10,55 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Admin password required to access the admin portal
 const ADMIN_PASSWORD = 'HTCeleron1?';
-const SESSION_AUTH_KEY = 'r2r_admin_auth_session';
-const LOCAL_AUTH_KEY = 'r2r_admin_auth_persistent';
+
+// 2 hours session expiry in milliseconds
+const SESSION_DURATION_MS = 2 * 60 * 60 * 1000;
+const SESSION_EXPIRY_KEY = 'r2r_admin_session_expiry';
+
+const checkIsSessionValid = (): boolean => {
+  try {
+    const rawExpiry = localStorage.getItem(SESSION_EXPIRY_KEY);
+    if (!rawExpiry) return false;
+    const expiresAt = parseInt(rawExpiry, 10);
+    if (isNaN(expiresAt) || Date.now() >= expiresAt) {
+      localStorage.removeItem(SESSION_EXPIRY_KEY);
+      return false;
+    }
+    return true;
+  } catch {
+    return false;
+  }
+};
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
-    // Check session storage first, then persistent storage
-    try {
-      const inSession = sessionStorage.getItem(SESSION_AUTH_KEY) === 'true';
-      const inLocal = localStorage.getItem(LOCAL_AUTH_KEY) === 'true';
-      return inSession || inLocal;
-    } catch {
-      return false;
-    }
+    return checkIsSessionValid();
   });
 
-  const login = (password: string, rememberMe = false): boolean => {
+  // Verify session validity whenever window gains focus or on interval
+  useEffect(() => {
+    const verifySession = () => {
+      const isValid = checkIsSessionValid();
+      if (!isValid && isAuthenticated) {
+        setIsAuthenticated(false);
+      }
+    };
+
+    window.addEventListener('focus', verifySession);
+    const interval = setInterval(verifySession, 60 * 1000); // Check every minute
+
+    return () => {
+      window.removeEventListener('focus', verifySession);
+      clearInterval(interval);
+    };
+  }, [isAuthenticated]);
+
+  const login = (password: string): boolean => {
     if (password === ADMIN_PASSWORD) {
       setIsAuthenticated(true);
       try {
-        sessionStorage.setItem(SESSION_AUTH_KEY, 'true');
-        if (rememberMe) {
-          localStorage.setItem(LOCAL_AUTH_KEY, 'true');
-        } else {
-          localStorage.removeItem(LOCAL_AUTH_KEY);
-        }
+        const expiresAt = Date.now() + SESSION_DURATION_MS;
+        localStorage.setItem(SESSION_EXPIRY_KEY, expiresAt.toString());
       } catch (e) {
         console.error('Storage error during login', e);
       }
@@ -46,8 +70,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = () => {
     setIsAuthenticated(false);
     try {
-      sessionStorage.removeItem(SESSION_AUTH_KEY);
-      localStorage.removeItem(LOCAL_AUTH_KEY);
+      localStorage.removeItem(SESSION_EXPIRY_KEY);
     } catch (e) {
       console.error('Storage error during logout', e);
     }

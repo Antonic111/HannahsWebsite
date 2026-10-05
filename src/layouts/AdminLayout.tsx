@@ -1,13 +1,13 @@
 import React from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, BookOpen, LogOut, Lock } from 'lucide-react';
+import { LayoutDashboard, BookOpen, LogOut } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { AdminLogin } from '../pages/admin/AdminLogin';
 import styles from './AdminLayout.module.css';
 
 export const AdminLayout: React.FC = () => {
   const location = useLocation();
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   if (!isAuthenticated) {
     return <AdminLogin />;
@@ -45,29 +45,8 @@ export const AdminLayout: React.FC = () => {
             </Link>
           ))}
           
-          <button
-            type="button"
-            onClick={logout}
-            className={styles.navItem}
-            style={{ 
-              marginTop: 'auto', 
-              background: 'none', 
-              border: 'none', 
-              cursor: 'pointer', 
-              width: '100%', 
-              textAlign: 'left',
-              fontFamily: 'inherit',
-              fontSize: 'inherit',
-              color: 'rgba(255, 255, 255, 0.75)'
-            }}
-            title="Lock admin portal and log out"
-          >
-            <Lock size={18} />
-            <span>Lock & Log Out</span>
-          </button>
-
-          <Link to="/" className={styles.navItem} style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.85rem' }}>
-            <LogOut size={16} />
+          <Link to="/" className={styles.navItem} style={{ marginTop: 'auto' }}>
+            <LogOut size={18} />
             <span>Exit to Website</span>
           </Link>
         </nav>
