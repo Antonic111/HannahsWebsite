@@ -58,14 +58,16 @@ export const ContactForm: React.FC = () => {
         body: JSON.stringify(data),
       });
 
+      const resData = await response.json().catch(() => null);
+
       if (!response.ok) {
-        throw new Error('Failed to send message');
+        throw new Error(resData?.error || 'Failed to send message');
       }
 
       setIsSubmitted(true);
     } catch (err: any) {
       console.error(err);
-      setError('There was a problem sending your message. Please try again later.');
+      setError(err?.message || 'There was a problem sending your message. Please try again later.');
     } finally {
       setIsSubmitting(false);
     }
@@ -95,6 +97,12 @@ export const ContactForm: React.FC = () => {
 
   return (
     <form className={styles.form} onSubmit={handleSubmit}>
+      {/* Anti-spam honeypot - invisible to real visitors */}
+      <div style={{ display: 'none' }} aria-hidden="true">
+        <label htmlFor="_hp">Ignore this field</label>
+        <input type="text" id="_hp" name="_hp" tabIndex={-1} autoComplete="off" />
+      </div>
+
       {/* Hidden input to guarantee the course is submitted in form payload */}
       <input type="hidden" name="course" value={selectedCourse} />
 
