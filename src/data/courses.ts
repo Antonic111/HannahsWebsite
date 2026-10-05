@@ -3,10 +3,13 @@ export interface Course {
   name: string;
   shortDescription: string;
   fullDescription: string;
-  audience: string;
+  audience?: string;
   duration: string;
   certification: string;
   price: string;
+  featured?: boolean;
+  badge?: string;
+  icon?: string;
 }
 
 export const courses: Course[] = [
@@ -19,6 +22,7 @@ export const courses: Course[] = [
     duration: '[Duration]',
     certification: '[Certification Name/Validity]',
     price: '$[Price]',
+    icon: 'HeartPulse',
   },
   {
     id: 'bls-renewal',
@@ -29,6 +33,7 @@ export const courses: Course[] = [
     duration: '[Duration]',
     certification: '[Certification Name/Validity]',
     price: '$[Price]',
+    icon: 'RefreshCw',
   },
   {
     id: 'standard-first-aid-cpr-c',
@@ -39,6 +44,7 @@ export const courses: Course[] = [
     duration: '[Duration]',
     certification: '[Certification Name/Validity]',
     price: '$[Price]',
+    icon: 'ShieldCheck',
   },
   {
     id: 'emergency-first-aid',
@@ -49,5 +55,6 @@ export const courses: Course[] = [
     duration: '[Duration]',
     certification: '[Certification Name/Validity]',
     price: '$[Price]',
+    icon: 'Activity',
   }
 ];

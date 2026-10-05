@@ -1,23 +1,338 @@
-.header {
-  text-align: center;
-  max-width: 800px;
-  margin: 0 auto var(--spacing-3xl);
+.pageWrapper {
+  padding-top: 4.75rem;
+  padding-bottom: 6rem;
 }
 
+.classesContainer {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-lg);
+}
+
+/* Page Header */
+.header {
+  text-align: center;
+  max-width: 680px;
+  margin: 0 auto 2.75rem;
+  position: relative;
+}
+
+.eyebrow {
+  display: inline-block;
+  color: var(--color-secondary);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: var(--spacing-xs);
+}
+
+.title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--color-primary-dark);
+  margin-bottom: var(--spacing-sm);
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.description {
+  color: var(--color-text-muted);
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  margin: 0 auto;
+}
+
+.headerDivider {
+  width: 48px;
+  height: 2px;
+  background-color: var(--color-border);
+  margin: var(--spacing-lg) auto 0;
+  border-radius: 2px;
+}
+
+/* Course Grid */
 .grid {
-  display: grid;
-  grid-template-columns: 1fr;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: var(--spacing-xl);
+  position: relative;
+  align-items: stretch;
+}
+
+.grid > * {
+  width: 100%;
+  max-width: 100%;
+  flex: 0 0 100%;
 }
 
 @media (min-width: 768px) {
-  .grid {
-    grid-template-columns: repeat(2, 1fr);
+  .grid > * {
+    width: calc((100% - var(--spacing-xl)) / 2);
+    max-width: calc((100% - var(--spacing-xl)) / 2);
+    flex: 0 0 calc((100% - var(--spacing-xl)) / 2);
   }
 }
 
 @media (min-width: 1024px) {
-  .grid {
-    grid-template-columns: repeat(3, 1fr);
+  .grid > * {
+    width: calc((100% - 2 * var(--spacing-xl)) / 3);
+    max-width: calc((100% - 2 * var(--spacing-xl)) / 3);
+    flex: 0 0 calc((100% - 2 * var(--spacing-xl)) / 3);
+  }
+}
+
+/* Training Requirements & Options Information Strip */
+.infoStrip {
+  margin-top: var(--spacing-2xl);
+  background-color: rgba(230, 57, 70, 0.04);
+  border: 1px solid rgba(230, 57, 70, 0.2);
+  border-radius: var(--radius-lg);
+  padding: 1.625rem 2rem;
+  box-shadow: 0 2px 8px rgba(230, 57, 70, 0.03);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.infoItem {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.infoIconWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background-color: rgba(230, 57, 70, 0.1);
+  border: 1px solid rgba(230, 57, 70, 0.2);
+  flex-shrink: 0;
+}
+
+.infoIcon {
+  color: var(--color-secondary);
+}
+
+.infoContent {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.infoTitle {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--color-primary-dark);
+  margin: 0;
+  line-height: 1.25;
+}
+
+.infoText {
+  font-size: 0.875rem;
+  color: #4b5563;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.infoDivider {
+  width: 1px;
+  height: 40px;
+  background-color: rgba(230, 57, 70, 0.2);
+  flex-shrink: 0;
+}
+
+/* Group Training Contained CTA Banner */
+.groupBannerWrapper {
+  margin-top: var(--spacing-2xl);
+}
+
+.groupCtaCard {
+  background-color: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-2xl) var(--spacing-3xl);
+  box-shadow: 0 4px 20px -2px rgba(10, 66, 117, 0.06), 0 1px 3px rgba(0, 0, 0, 0.02);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-2xl);
+}
+
+.groupCtaLeft {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-lg);
+  flex: 1;
+}
+
+.groupIconContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  background-color: rgba(230, 57, 70, 0.08);
+  border: 1px solid rgba(230, 57, 70, 0.15);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.groupIcon {
+  color: var(--color-secondary);
+}
+
+.groupCtaContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.groupEyebrow {
+  display: inline-block;
+  color: var(--color-secondary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: var(--spacing-xs);
+}
+
+.groupHeading {
+  font-size: 1.75rem;
+  color: var(--color-primary-dark);
+  font-weight: 700;
+  margin-bottom: var(--spacing-xs);
+  line-height: 1.25;
+}
+
+.groupDescription {
+  font-size: 0.975rem;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+  margin: 0;
+  max-width: 580px;
+}
+
+.groupCtaAction {
+  position: relative;
+  z-index: 2;
+  flex-shrink: 0;
+}
+
+.groupCtaBtn {
+  background-color: var(--color-primary-dark);
+  color: #ffffff;
+  padding: 0.875rem 1.625rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+  text-decoration: none;
+  border: 1px solid transparent;
+  transition: all var(--transition-fast);
+  box-shadow: 0 4px 12px rgba(10, 66, 117, 0.15);
+  white-space: nowrap;
+}
+
+.groupCtaBtn:hover {
+  background-color: var(--color-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(10, 66, 117, 0.25);
+}
+
+.groupBtnIcon {
+  color: rgba(255, 255, 255, 0.85);
+  flex-shrink: 0;
+}
+
+.groupBtnArrow {
+  color: rgba(255, 255, 255, 0.85);
+  flex-shrink: 0;
+  transition: transform var(--transition-fast);
+}
+
+.groupCtaBtn:hover .groupBtnArrow {
+  transform: translateX(3px);
+}
+
+.groupCtaBtn:focus-visible {
+  outline: 2px solid var(--color-secondary);
+  outline-offset: 2px;
+}
+
+/* Tablet & Mobile Overrides */
+@media (max-width: 1024px) {
+  .groupCtaCard {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-xl);
+    padding: var(--spacing-xl);
+  }
+
+  .groupCtaAction {
+    width: 100%;
+  }
+
+  .groupCtaBtn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 767px) {
+  .pageWrapper {
+    padding-top: 3.25rem;
+    padding-bottom: 4.5rem;
+  }
+
+  .title {
+    font-size: 2rem;
+  }
+
+  .header {
+    margin-bottom: 2rem;
+  }
+
+  .infoStrip {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 1.5rem 1.25rem;
+    gap: 1.125rem;
+    margin-top: var(--spacing-xl);
+  }
+
+  .infoItem {
+    justify-content: flex-start;
+  }
+
+  .infoDivider {
+    width: 100%;
+    height: 1px;
+  }
+
+  .groupBannerWrapper {
+    margin-top: var(--spacing-xl);
+  }
+
+  .groupCtaLeft {
+    flex-direction: column;
+    gap: var(--spacing-md);
+  }
+
+  .groupHeading {
+    font-size: 1.5rem;
   }
 }

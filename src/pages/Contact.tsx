@@ -1,6 +1,6 @@
 import React from 'react';
 import { Helmet } from 'react-helmet-async';
-import { MapPin, Phone, Mail, Clock } from 'lucide-react';
+import { MapPin, Phone, Mail } from 'lucide-react';
 import { ContactForm } from '../components/ContactForm';
 import styles from './Contact.module.css';
 
@@ -55,15 +55,6 @@ export const Contact: React.FC = () => {
                   </div>
                 </div>
 
-                <div className={styles.detailItem}>
-                  <div className={styles.detailIcon}>
-                    <Clock size={24} />
-                  </div>
-                  <div className={styles.detailText}>
-                    <h3>Business Hours</h3>
-                    <p>Monday - Friday: 9:00 AM - 5:00 PM<br/>Saturday: [Weekend Hours]<br/>Sunday: Closed</p>
-                  </div>
-                </div>
               </div>
 
             </div>
