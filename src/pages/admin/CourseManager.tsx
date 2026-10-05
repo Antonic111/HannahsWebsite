@@ -24,6 +24,7 @@ export const CourseManager: React.FC = () => {
   const handleDelete = (id: string, name: string) => {
     if (window.confirm(`Are you sure you want to delete ${name}?`)) {
       deleteCourse(id);
+      showSaveNotice(`Deleted "${name}"`);
     }
   };
 

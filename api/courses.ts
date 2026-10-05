@@ -125,12 +125,17 @@ async function getBlobCourses(): Promise<Course[] | null> {
     if (blobs && blobs.length > 0) {
       const blob = blobs[0];
       const targetUrl = (blob as any).downloadUrl || blob.url;
-      const res = await fetch(targetUrl, {
+      // Add cache buster and cache: 'no-store' so we always fetch the newest saved courses
+      const fetchUrl = targetUrl.includes('?') 
+        ? `${targetUrl}&_t=${Date.now()}` 
+        : `${targetUrl}?_t=${Date.now()}`;
+      const res = await fetch(fetchUrl, {
+        cache: 'no-store',
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
       if (res.ok) {
         const data = await res.json();
-        if (Array.isArray(data) && data.length > 0) {
+        if (Array.isArray(data)) {
           return data;
         }
       }
@@ -147,33 +152,37 @@ async function setBlobCourses(courses: Course[]): Promise<boolean> {
 
   try {
     const { put } = await import('@vercel/blob');
-    // Try public access first, fallback to private access
+    // Try public access first with allowOverwrite: true
     try {
       await put('courses.json', JSON.stringify(courses), {
         access: 'public',
         addRandomSuffix: false,
+        allowOverwrite: true,
         token,
       });
       return true;
-    } catch {
+    } catch (pubErr) {
+      console.warn('Vercel Blob public write failed, trying private:', pubErr);
       await put('courses.json', JSON.stringify(courses), {
         access: 'private' as any,
         addRandomSuffix: false,
+        allowOverwrite: true,
         token,
       });
       return true;
     }
   } catch (err) {
-    console.warn('Vercel Blob write error:', err);
+    console.error('Vercel Blob write error:', err);
     return false;
   }
 }
 
 export default async function handler(req: any, res: any) {
-  // CORS & headers
+  // CORS & caching headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-admin-password');
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -258,6 +267,14 @@ export default async function handler(req: any, res: any) {
 
       // 2. Save to Vercel Blob if available
       const savedToBlob = await setBlobCourses(coursesToSave);
+
+      if (isCloudStorageAvailable && !savedToKv && !savedToBlob) {
+        console.error('Failed to write to connected cloud storage');
+        return res.status(500).json({
+          success: false,
+          error: 'Failed to write to Vercel Blob. Please check permissions.',
+        });
+      }
 
       const storageType = savedToKv ? 'vercel-kv' : savedToBlob ? 'vercel-blob' : 'local-browser';
 
