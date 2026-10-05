@@ -123,8 +123,12 @@ async function getBlobCourses(): Promise<Course[] | null> {
     const { list } = await import('@vercel/blob');
     const { blobs } = await list({ prefix: 'courses.json', token });
     if (blobs && blobs.length > 0) {
-      const blob = blobs[0];
-      const targetUrl = (blob as any).downloadUrl || blob.url;
+      // Sort newest first by uploadedAt timestamp!
+      const sortedBlobs = [...blobs].sort(
+        (a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime()
+      );
+      const latestBlob = sortedBlobs[0];
+      const targetUrl = (latestBlob as any).downloadUrl || latestBlob.url;
       // Add cache buster and cache: 'no-store' so we always fetch the newest saved courses
       const fetchUrl = targetUrl.includes('?') 
         ? `${targetUrl}&_t=${Date.now()}` 
@@ -151,26 +155,47 @@ async function setBlobCourses(courses: Course[]): Promise<boolean> {
   if (!token) return false;
 
   try {
-    const { put } = await import('@vercel/blob');
-    // Try public access first with allowOverwrite: true
+    const { put, list, del } = await import('@vercel/blob');
+    let newBlobUrl: string | null = null;
+
+    // Try public access first with allowOverwrite: true and zero cache
     try {
-      await put('courses.json', JSON.stringify(courses), {
+      const res = await put('courses.json', JSON.stringify(courses), {
         access: 'public',
         addRandomSuffix: false,
         allowOverwrite: true,
         token,
+        cacheControlMaxAge: 0,
       });
-      return true;
+      newBlobUrl = res.url;
     } catch (pubErr) {
       console.warn('Vercel Blob public write failed, trying private:', pubErr);
-      await put('courses.json', JSON.stringify(courses), {
+      const res = await put('courses.json', JSON.stringify(courses), {
         access: 'private' as any,
         addRandomSuffix: false,
         allowOverwrite: true,
         token,
+        cacheControlMaxAge: 0,
       });
-      return true;
+      newBlobUrl = res.url;
     }
+
+    // Clean up any stale or duplicated older blobs matching courses.json
+    try {
+      const { blobs } = await list({ prefix: 'courses.json', token });
+      if (blobs && blobs.length > 1 && newBlobUrl) {
+        const staleUrls = blobs
+          .filter(b => b.url !== newBlobUrl)
+          .map(b => b.url);
+        if (staleUrls.length > 0) {
+          await del(staleUrls, { token });
+        }
+      }
+    } catch (cleanupErr) {
+      console.warn('Stale blob cleanup warning:', cleanupErr);
+    }
+
+    return true;
   } catch (err) {
     console.error('Vercel Blob write error:', err);
     return false;

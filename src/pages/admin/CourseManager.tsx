@@ -13,6 +13,8 @@ export const CourseManager: React.FC = () => {
 
   const saveTimerRef = useRef<number | null>(null);
 
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
   const showSaveNotice = (msg = 'Order updated') => {
     setSaveMessage(msg);
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
@@ -21,19 +23,27 @@ export const CourseManager: React.FC = () => {
     }, 2500);
   };
 
-  const handleDelete = (id: string, name: string) => {
+  const handleDelete = async (id: string, name: string) => {
     if (window.confirm(`Are you sure you want to delete ${name}?`)) {
-      deleteCourse(id);
-      showSaveNotice(`Deleted "${name}"`);
+      setDeletingId(id);
+      showSaveNotice(`Deleting "${name}"...`);
+      const success = await deleteCourse(id);
+      setDeletingId(null);
+      if (success) {
+        showSaveNotice(`Deleted "${name}"`);
+      } else {
+        showSaveNotice(`Failed to delete "${name}". Check connection.`);
+      }
     }
   };
 
-  const moveCourse = (fromIndex: number, toIndex: number) => {
+  const moveCourse = async (fromIndex: number, toIndex: number) => {
     if (fromIndex === toIndex || toIndex < 0 || toIndex >= courses.length) return;
     const reordered = [...courses];
     const [moved] = reordered.splice(fromIndex, 1);
     reordered.splice(toIndex, 0, moved);
-    reorderCourses(reordered);
+    showSaveNotice(`Saving order...`);
+    await reorderCourses(reordered);
     showSaveNotice(`Moved "${moved.name}" to position ${toIndex + 1}`);
   };
 
@@ -264,7 +274,15 @@ export const CourseManager: React.FC = () => {
                         <button 
                           onClick={() => handleDelete(course.id, course.name)}
                           className="btn" 
-                          style={{ padding: '0.5rem', backgroundColor: 'var(--color-secondary)', color: 'white', borderColor: 'var(--color-secondary)' }}
+                          disabled={deletingId === course.id}
+                          style={{ 
+                            padding: '0.5rem', 
+                            backgroundColor: 'var(--color-secondary)', 
+                            color: 'white', 
+                            borderColor: 'var(--color-secondary)',
+                            opacity: deletingId === course.id ? 0.4 : 1,
+                            cursor: deletingId === course.id ? 'wait' : 'pointer'
+                          }}
                           aria-label="Delete Course"
                         >
                           <Trash2 size={16} />

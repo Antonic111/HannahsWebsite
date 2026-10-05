@@ -4,11 +4,11 @@ import { courses as initialCourses } from '../data/courses';
 
 interface CourseContextType {
   courses: Course[];
-  addCourse: (course: Course) => void;
-  updateCourse: (id: string, updatedCourse: Course) => void;
-  deleteCourse: (id: string) => void;
+  addCourse: (course: Course) => Promise<boolean>;
+  updateCourse: (id: string, updatedCourse: Course) => Promise<boolean>;
+  deleteCourse: (id: string) => Promise<boolean>;
   getCourse: (id: string) => Course | undefined;
-  reorderCourses: (newCourses: Course[]) => void;
+  reorderCourses: (newCourses: Course[]) => Promise<boolean>;
   syncStatus: 'synced' | 'syncing' | 'error' | 'idle';
   isSyncing: boolean;
   storageConnected: boolean | null;
@@ -51,7 +51,7 @@ export const CourseProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [storageConnected, setStorageConnected] = useState<boolean | null>(null);
 
   // Sync to Vercel Serverless API & Storage
-  const syncToVercel = async (coursesToSync: Course[]) => {
+  const syncToVercel = async (coursesToSync: Course[]): Promise<boolean> => {
     setIsSyncing(true);
     setSyncStatus('syncing');
     try {
@@ -68,12 +68,16 @@ export const CourseProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         const data = await res.json();
         setStorageConnected(Boolean(data && data.storageConnected));
         setSyncStatus('synced');
+        localStorage.setItem('r2r_courses', JSON.stringify(coursesToSync));
+        return true;
       } else {
         setSyncStatus('error');
+        return false;
       }
     } catch {
       // Running offline or locally without Vercel CLI runner
       setSyncStatus('error');
+      return false;
     } finally {
       setIsSyncing(false);
     }
@@ -82,7 +86,13 @@ export const CourseProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   // Fetch live courses from Vercel API on startup
   const refreshCourses = async () => {
     try {
-      const res = await fetch('/api/courses');
+      const res = await fetch(`/api/courses?_t=${Date.now()}`, {
+        cache: 'no-store',
+        headers: {
+          'Pragma': 'no-cache',
+          'Cache-Control': 'no-cache',
+        },
+      });
       if (res.ok) {
         const contentType = res.headers.get('content-type');
         if (contentType && contentType.includes('application/json')) {
@@ -92,7 +102,7 @@ export const CourseProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
           // CRITICAL: Only overwrite local courses if cloud storage (KV or Blob) is actively connected!
           // If cloud storage is not yet connected, NEVER wipe out courses saved in browser localStorage!
-          if (isConnected && data && Array.isArray(data.courses) && data.courses.length > 0) {
+          if (isConnected && data && Array.isArray(data.courses)) {
             const formatted = data.courses.map((c: Course) => ({
               ...c,
               icon: c.icon || LEGACY_DEFAULT_ICONS[c.id] || 'BookOpen',
@@ -119,31 +129,35 @@ export const CourseProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     localStorage.setItem('r2r_courses', JSON.stringify(courses));
   }, [courses]);
 
-  const addCourse = (course: Course) => {
+  const addCourse = async (course: Course): Promise<boolean> => {
     const updated = [...courses, course];
     setCourses(updated);
-    syncToVercel(updated);
+    localStorage.setItem('r2r_courses', JSON.stringify(updated));
+    return await syncToVercel(updated);
   };
 
-  const updateCourse = (id: string, updatedCourse: Course) => {
+  const updateCourse = async (id: string, updatedCourse: Course): Promise<boolean> => {
     const updated = courses.map(c => c.id === id ? updatedCourse : c);
     setCourses(updated);
-    syncToVercel(updated);
+    localStorage.setItem('r2r_courses', JSON.stringify(updated));
+    return await syncToVercel(updated);
   };
 
-  const deleteCourse = (id: string) => {
+  const deleteCourse = async (id: string): Promise<boolean> => {
     const updated = courses.filter(c => c.id !== id);
     setCourses(updated);
-    syncToVercel(updated);
+    localStorage.setItem('r2r_courses', JSON.stringify(updated));
+    return await syncToVercel(updated);
   };
 
   const getCourse = (id: string) => {
     return courses.find(c => c.id === id);
   };
 
-  const reorderCourses = (newCourses: Course[]) => {
+  const reorderCourses = async (newCourses: Course[]): Promise<boolean> => {
     setCourses(newCourses);
-    syncToVercel(newCourses);
+    localStorage.setItem('r2r_courses', JSON.stringify(newCourses));
+    return await syncToVercel(newCourses);
   };
 
   return (

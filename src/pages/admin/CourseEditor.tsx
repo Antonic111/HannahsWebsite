@@ -169,7 +169,9 @@ export const CourseEditor: React.FC = () => {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const formattedDuration = formatDuration(durationHours, durationMinutes);
@@ -186,14 +188,19 @@ export const CourseEditor: React.FC = () => {
       duration: formattedDuration,
     };
     
-    if (isEditing && id) {
-      updateCourse(id, courseToSave);
-    } else {
-      const newId = formData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-      addCourse({ ...courseToSave, id: newId });
+    setIsSaving(true);
+    try {
+      if (isEditing && id) {
+        await updateCourse(id, courseToSave);
+      } else {
+        const newId = formData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+        await addCourse({ ...courseToSave, id: newId });
+      }
+      navigate('/admin/courses');
+    } catch {
+      alert('Could not save to database. Please try again.');
+      setIsSaving(false);
     }
-    
-    navigate('/admin/courses');
   };
 
   const durationPreview = formatDuration(durationHours, durationMinutes);
@@ -686,8 +693,8 @@ export const CourseEditor: React.FC = () => {
           </div>
 
           <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
-            <button type="submit" className="btn btn-primary">
-              {isEditing ? 'Save Changes' : 'Create Course'}
+            <button type="submit" className="btn btn-primary" disabled={isSaving}>
+              {isSaving ? 'Saving to Database...' : isEditing ? 'Save Changes' : 'Create Course'}
             </button>
             <button type="button" className="btn btn-outline" onClick={() => navigate('/admin/courses')}>
               Cancel
