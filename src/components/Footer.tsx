@@ -40,14 +40,14 @@ export const Footer: React.FC = () => {
                 <MapPin size={18} />
                 <span>Ontario, Canada (Service Area)</span>
               </div>
-              <div className={styles.contactItem}>
+              <a href="tel:4168444843" className={styles.contactItem} aria-label="Call (416) 844-4843">
                 <Phone size={18} />
                 <span>(416) 844-4843</span>
-              </div>
-              <div className={styles.contactItem}>
+              </a>
+              <a href="mailto:readytorespond4u@gmail.com" className={styles.contactItem} aria-label="Email readytorespond4u@gmail.com">
                 <Mail size={18} />
                 <span>readytorespond4u@gmail.com</span>
-              </div>
+              </a>
             </div>
           </div>
         </div>

@@ -35,25 +35,25 @@ export const Contact: React.FC = () => {
                   </div>
                 </div>
 
-                <div className={styles.detailItem}>
+                <a href="tel:4168444843" className={styles.detailItem} style={{ textDecoration: 'none', color: 'inherit' }}>
                   <div className={styles.detailIcon}>
                     <Phone size={24} />
                   </div>
                   <div className={styles.detailText}>
                     <h3>Phone</h3>
-                    <p>(416) 844-4843</p>
+                    <p style={{ textDecoration: 'underline' }}>(416) 844-4843</p>
                   </div>
-                </div>
+                </a>
 
-                <div className={styles.detailItem}>
+                <a href="mailto:readytorespond4u@gmail.com" className={styles.detailItem} style={{ textDecoration: 'none', color: 'inherit' }}>
                   <div className={styles.detailIcon}>
                     <Mail size={24} />
                   </div>
                   <div className={styles.detailText}>
                     <h3>Email</h3>
-                    <p>readytorespond4u@gmail.com</p>
+                    <p style={{ textDecoration: 'underline' }}>readytorespond4u@gmail.com</p>
                   </div>
-                </div>
+                </a>
 
               </div>
 

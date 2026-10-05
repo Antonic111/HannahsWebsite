@@ -84,6 +84,14 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a.contactItem:hover {
+  color: #fff;
+  text-decoration: underline;
 }
 
 @media (max-width: 767px) {
