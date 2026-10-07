@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useCourses } from '../../context/CourseContext';
 import type { Course } from '../../data/courses';
-import { FormattedDescription } from '../../components/FormattedText';
 import { IconPicker } from '../../components/admin/IconPicker';
-import { Bold, Italic, List, Plus, ExternalLink } from 'lucide-react';
+import { RichDescriptionEditor } from '../../components/RichDescriptionEditor';
+import { ExternalLink } from 'lucide-react';
 import styles from './CourseEditor.module.css';
 
 const parsePrice = (raw: string): string => {
@@ -83,61 +83,6 @@ export const CourseEditor: React.FC = () => {
   const [priceValue, setPriceValue] = useState<string>('');
   const [durationHours, setDurationHours] = useState<string>('');
   const [durationMinutes, setDurationMinutes] = useState<string>('');
-
-  const [previewMode, setPreviewMode] = useState<{ shortDescription: boolean; fullDescription: boolean }>({
-    shortDescription: false,
-    fullDescription: false,
-  });
-
-  const shortDescRef = useRef<HTMLTextAreaElement>(null);
-  const fullDescRef = useRef<HTMLTextAreaElement>(null);
-
-  const handleFormat = (field: 'shortDescription' | 'fullDescription', type: 'bold' | 'italic' | 'bullet' | 'addBullet') => {
-    const ref = field === 'shortDescription' ? shortDescRef : fullDescRef;
-    const textarea = ref.current;
-    if (!textarea) return;
-
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const text = formData[field] || '';
-    const selected = text.substring(start, end);
-
-    let replacement = '';
-    let cursorOffset = 0;
-
-    if (type === 'bold') {
-      replacement = `**${selected || 'bold text'}**`;
-      cursorOffset = selected ? replacement.length : 2;
-    } else if (type === 'italic') {
-      replacement = `*${selected || 'italic text'}*`;
-      cursorOffset = selected ? replacement.length : 1;
-    } else if (type === 'bullet') {
-      if (selected) {
-        replacement = selected
-          .split('\n')
-          .map(line => (line.trim().startsWith('•') ? line : `• ${line}`))
-          .join('\n');
-        cursorOffset = replacement.length;
-      } else {
-        const needsNewline = start > 0 && text[start - 1] !== '\n';
-        replacement = `${needsNewline ? '\n' : ''}• `;
-        cursorOffset = replacement.length;
-      }
-    } else if (type === 'addBullet') {
-      const needsNewline = start > 0 && text[start - 1] !== '\n';
-      replacement = `${needsNewline ? '\n' : ''}• `;
-      cursorOffset = replacement.length;
-    }
-
-    const updatedText = text.substring(0, start) + replacement + text.substring(end);
-    setFormData(prev => ({ ...prev, [field]: updatedText }));
-
-    setTimeout(() => {
-      textarea.focus();
-      const newPos = start + cursorOffset;
-      textarea.setSelectionRange(newPos, newPos);
-    }, 10);
-  };
 
   useEffect(() => {
     if (isEditing && id) {
@@ -337,341 +282,31 @@ export const CourseEditor: React.FC = () => {
 
           {/* Short Description */}
           <div className="form-group">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
-              <label htmlFor="shortDescription" className="form-label" style={{ margin: 0 }}>
-                Short Description *
-              </label>
-              <div style={{ display: 'flex', gap: '0.25rem' }}>
-                <button
-                  type="button"
-                  onClick={() => setPreviewMode(p => ({ ...p, shortDescription: false }))}
-                  style={{
-                    background: !previewMode.shortDescription ? 'var(--color-primary)' : '#f1f5f9',
-                    color: !previewMode.shortDescription ? '#fff' : 'var(--color-text-muted)',
-                    border: '1px solid var(--color-border)',
-                    borderRadius: '4px',
-                    padding: '0.2rem 0.65rem',
-                    fontSize: '0.75rem',
-                    fontWeight: 600,
-                    cursor: 'pointer'
-                  }}
-                >
-                  Edit
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setPreviewMode(p => ({ ...p, shortDescription: true }))}
-                  style={{
-                    background: previewMode.shortDescription ? 'var(--color-primary)' : '#f1f5f9',
-                    color: previewMode.shortDescription ? '#fff' : 'var(--color-text-muted)',
-                    border: '1px solid var(--color-border)',
-                    borderRadius: '4px',
-                    padding: '0.2rem 0.65rem',
-                    fontSize: '0.75rem',
-                    fontWeight: 600,
-                    cursor: 'pointer'
-                  }}
-                >
-                  Preview
-                </button>
-              </div>
-            </div>
-
-            {!previewMode.shortDescription ? (
-              <div>
-                <div style={{
-                  display: 'flex',
-                  gap: '0.35rem',
-                  padding: '0.4rem 0.6rem',
-                  backgroundColor: '#f1f5f9',
-                  border: '1px solid var(--color-border)',
-                  borderBottom: 'none',
-                  borderTopLeftRadius: 'var(--radius-md)',
-                  borderTopRightRadius: 'var(--radius-md)',
-                  alignItems: 'center',
-                  flexWrap: 'wrap'
-                }}>
-                  <button
-                    type="button"
-                    onClick={() => handleFormat('shortDescription', 'bold')}
-                    title="Bold (**text**)"
-                    style={{
-                      background: '#fff',
-                      border: '1px solid #cbd5e1',
-                      borderRadius: '3px',
-                      padding: '0.25rem 0.5rem',
-                      fontSize: '0.8rem',
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '0.25rem'
-                    }}
-                  >
-                    <Bold size={13} />
-                    <span>Bold</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleFormat('shortDescription', 'italic')}
-                    title="Italic (*text*)"
-                    style={{
-                      background: '#fff',
-                      border: '1px solid #cbd5e1',
-                      borderRadius: '3px',
-                      padding: '0.25rem 0.5rem',
-                      fontSize: '0.8rem',
-                      fontStyle: 'italic',
-                      cursor: 'pointer',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '0.25rem'
-                    }}
-                  >
-                    <Italic size={13} />
-                    <span>Italic</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleFormat('shortDescription', 'bullet')}
-                    title="Convert selection or line to Bullet Points"
-                    style={{
-                      background: '#fff',
-                      border: '1px solid #cbd5e1',
-                      borderRadius: '3px',
-                      padding: '0.25rem 0.5rem',
-                      fontSize: '0.8rem',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '0.25rem'
-                    }}
-                  >
-                    <List size={13} />
-                    <span>Bullet List</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleFormat('shortDescription', 'addBullet')}
-                    title="Insert bullet point item"
-                    style={{
-                      background: '#fff',
-                      border: '1px solid #cbd5e1',
-                      borderRadius: '3px',
-                      padding: '0.25rem 0.5rem',
-                      fontSize: '0.8rem',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '0.25rem'
-                    }}
-                  >
-                    <Plus size={13} />
-                    <span>• Bullet</span>
-                  </button>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginLeft: 'auto' }}>
-                    Tip: Use <strong>**bold**</strong> or lines starting with <strong>•</strong>
-                  </span>
-                </div>
-                <textarea
-                  ref={shortDescRef}
-                  id="shortDescription"
-                  name="shortDescription"
-                  className="form-control"
-                  rows={4}
-                  value={formData.shortDescription}
-                  onChange={handleChange}
-                  style={{ borderTopLeftRadius: 0, borderTopRightRadius: 0, fontFamily: 'inherit' }}
-                  placeholder="Enter short description or bullet points (e.g. • In-person training...)"
-                  required
-                ></textarea>
-              </div>
-            ) : (
-              <div style={{
-                border: '1px solid var(--color-border)',
-                borderRadius: 'var(--radius-md)',
-                padding: '1rem',
-                backgroundColor: '#f8fafc',
-                minHeight: '110px'
-              }}>
-                {formData.shortDescription ? (
-                  <FormattedDescription content={formData.shortDescription} />
-                ) : (
-                  <span style={{ color: 'var(--color-text-muted)', fontStyle: 'italic', fontSize: '0.875rem' }}>No description entered yet.</span>
-                )}
-              </div>
-            )}
+            <RichDescriptionEditor
+              id="shortDescription"
+              name="shortDescription"
+              label="Short Description"
+              value={formData.shortDescription}
+              onChange={(val) => setFormData(prev => ({ ...prev, shortDescription: val }))}
+              placeholder="Enter short summary or highlights (e.g. • In-person BLS training...)"
+              rows={4}
+              required
+              helpText="Displayed on course catalog cards and class previews. Use the toolbar to apply colors, font sizes, bold, italic, and bullet lists."
+            />
           </div>
 
           {/* Full Description */}
           <div className="form-group">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
-              <label htmlFor="fullDescription" className="form-label" style={{ margin: 0 }}>
-                Full Description
-              </label>
-              <div style={{ display: 'flex', gap: '0.25rem' }}>
-                <button
-                  type="button"
-                  onClick={() => setPreviewMode(p => ({ ...p, fullDescription: false }))}
-                  style={{
-                    background: !previewMode.fullDescription ? 'var(--color-primary)' : '#f1f5f9',
-                    color: !previewMode.fullDescription ? '#fff' : 'var(--color-text-muted)',
-                    border: '1px solid var(--color-border)',
-                    borderRadius: '4px',
-                    padding: '0.2rem 0.65rem',
-                    fontSize: '0.75rem',
-                    fontWeight: 600,
-                    cursor: 'pointer'
-                  }}
-                >
-                  Edit
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setPreviewMode(p => ({ ...p, fullDescription: true }))}
-                  style={{
-                    background: previewMode.fullDescription ? 'var(--color-primary)' : '#f1f5f9',
-                    color: previewMode.fullDescription ? '#fff' : 'var(--color-text-muted)',
-                    border: '1px solid var(--color-border)',
-                    borderRadius: '4px',
-                    padding: '0.2rem 0.65rem',
-                    fontSize: '0.75rem',
-                    fontWeight: 600,
-                    cursor: 'pointer'
-                  }}
-                >
-                  Preview
-                </button>
-              </div>
-            </div>
-
-            {!previewMode.fullDescription ? (
-              <div>
-                <div style={{
-                  display: 'flex',
-                  gap: '0.35rem',
-                  padding: '0.4rem 0.6rem',
-                  backgroundColor: '#f1f5f9',
-                  border: '1px solid var(--color-border)',
-                  borderBottom: 'none',
-                  borderTopLeftRadius: 'var(--radius-md)',
-                  borderTopRightRadius: 'var(--radius-md)',
-                  alignItems: 'center',
-                  flexWrap: 'wrap'
-                }}>
-                  <button
-                    type="button"
-                    onClick={() => handleFormat('fullDescription', 'bold')}
-                    title="Bold (**text**)"
-                    style={{
-                      background: '#fff',
-                      border: '1px solid #cbd5e1',
-                      borderRadius: '3px',
-                      padding: '0.25rem 0.5rem',
-                      fontSize: '0.8rem',
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '0.25rem'
-                    }}
-                  >
-                    <Bold size={13} />
-                    <span>Bold</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleFormat('fullDescription', 'italic')}
-                    title="Italic (*text*)"
-                    style={{
-                      background: '#fff',
-                      border: '1px solid #cbd5e1',
-                      borderRadius: '3px',
-                      padding: '0.25rem 0.5rem',
-                      fontSize: '0.8rem',
-                      fontStyle: 'italic',
-                      cursor: 'pointer',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '0.25rem'
-                    }}
-                  >
-                    <Italic size={13} />
-                    <span>Italic</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleFormat('fullDescription', 'bullet')}
-                    title="Convert selection or line to Bullet Points"
-                    style={{
-                      background: '#fff',
-                      border: '1px solid #cbd5e1',
-                      borderRadius: '3px',
-                      padding: '0.25rem 0.5rem',
-                      fontSize: '0.8rem',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '0.25rem'
-                    }}
-                  >
-                    <List size={13} />
-                    <span>Bullet List</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleFormat('fullDescription', 'addBullet')}
-                    title="Insert bullet point item"
-                    style={{
-                      background: '#fff',
-                      border: '1px solid #cbd5e1',
-                      borderRadius: '3px',
-                      padding: '0.25rem 0.5rem',
-                      fontSize: '0.8rem',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '0.25rem'
-                    }}
-                  >
-                    <Plus size={13} />
-                    <span>• Bullet</span>
-                  </button>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginLeft: 'auto' }}>
-                    Tip: Use <strong>**bold**</strong> or lines starting with <strong>•</strong>
-                  </span>
-                </div>
-                <textarea
-                  ref={fullDescRef}
-                  id="fullDescription"
-                  name="fullDescription"
-                  className="form-control"
-                  rows={6}
-                  value={formData.fullDescription}
-                  onChange={handleChange}
-                  style={{ borderTopLeftRadius: 0, borderTopRightRadius: 0, fontFamily: 'inherit' }}
-                  placeholder="Detailed course overview, syllabus, or module topics..."
-                ></textarea>
-              </div>
-            ) : (
-              <div style={{
-                border: '1px solid var(--color-border)',
-                borderRadius: 'var(--radius-md)',
-                padding: '1rem',
-                backgroundColor: '#f8fafc',
-                minHeight: '140px'
-              }}>
-                {formData.fullDescription ? (
-                  <FormattedDescription content={formData.fullDescription} />
-                ) : (
-                  <span style={{ color: 'var(--color-text-muted)', fontStyle: 'italic', fontSize: '0.875rem' }}>No full description entered yet.</span>
-                )}
-              </div>
-            )}
+            <RichDescriptionEditor
+              id="fullDescription"
+              name="fullDescription"
+              label="Full Description & Course Details"
+              value={formData.fullDescription}
+              onChange={(val) => setFormData(prev => ({ ...prev, fullDescription: val }))}
+              placeholder="Detailed course overview, syllabus, module topics, prerequisites..."
+              rows={8}
+              helpText="Displayed on the public course page. Use Split View for instant live preview as you format!"
+            />
           </div>
 
           <div className={styles.actionsRow}>
